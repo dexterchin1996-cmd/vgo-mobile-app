@@ -3,48 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Vgo Merchant - 商家入驻与服务同步中枢</title>
+  <title>Vgo Merchant - 商家入驻提报与平台同步中枢</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../assets/css/design-system.css">
   <style>
     body { background: #F8FAFC; color: #0F172A; padding: 16px; }
-    .store-box { background: #fff; border-radius: 16px; padding: 20px; border: 1px solid var(--color-border); box-shadow: var(--shadow-sm); }
-    .field-group { margin-bottom: 12px; }
-    .field-group label { font-size: 12px; font-weight: 800; color: #475569; display: block; margin-bottom: 6px; }
-    .field-group input, .field-group textarea {
-      width: 100%; padding: 11px 14px; border: 1.5px solid var(--color-border); border-radius: 12px; font-size: 13.5px; outline: none;
+    .merchant-card { background: #fff; border-radius: 18px; padding: 20px; border: 1.5px solid var(--color-border); box-shadow: var(--shadow-sm); }
+    .form-item { margin-bottom: 14px; }
+    .form-item label { font-size: 12.5px; font-weight: 800; color: #334155; display: block; margin-bottom: 6px; }
+    .form-item input, .form-item textarea {
+      width: 100%; padding: 11px 14px; border: 1.5px solid var(--color-border); border-radius: 12px; font-size: 14px; outline: none;
+    }
+    .form-item input:focus, .form-item textarea:focus { border-color: #0D9488; }
+    .btn-sync {
+      width: 100%; padding: 15px; border: none; border-radius: 14px;
+      background: #0D9488; color: #fff; font-weight: 900; font-size: 15px; cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-    <div style="width: 36px; height: 36px; border-radius: 10px; background: #0D9488; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900;">V</div>
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px;">
+    <div style="width: 40px; height: 40px; border-radius: 12px; background: #0D9488; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px;">V</div>
     <div>
-      <h2 style="font-size: 16px; font-weight: 900;">Vgo 商家入驻管理工作台</h2>
-      <p style="font-size: 11px; color: #64748B;">资料审核认证通过后，服务与价格自动同步至 Vgo 平台大厅</p>
+      <h2 style="font-size: 17px; font-weight: 900;">Vgo 实体商户认证与同步控制台</h2>
+      <p style="font-size: 11px; color: #64748B;">资料提交完成即可实时同步至 Vgo 平台顾客大厅展示</p>
     </div>
   </div>
 
-  <div class="store-box">
-    <div class="field-group">
-      <label>门店/工作室全称</label>
-      <input type="text" id="storeName" placeholder="例如：自然生活 SPA 馆 / 萌宠养护工坊">
+  <div class="merchant-card">
+    <div class="form-item">
+      <label>实体店铺/工作室全称</label>
+      <input type="text" id="inStoreName" placeholder="例如：加雅街芳香理疗馆 / 萌宠专业美容沙龙">
     </div>
-    <div class="field-group">
-      <label>经营品类行业</label>
-      <input type="text" id="storeCategory" placeholder="理疗养生 / 宠物美容 / 美容美睫 / 家电工程">
+    <div class="form-item">
+      <label>所属经营大类</label>
+      <input type="text" id="inStoreCategory" placeholder="理疗养生 / 美容美妆 / 宠物美容 / 水电工程">
     </div>
-    <div class="field-group">
-      <label>店铺实体地址</label>
-      <input type="text" id="storeAddress" placeholder="详细商厦/街道门牌号">
+    <div class="form-item">
+      <label>店铺具体商厦/街道门牌地址</label>
+      <input type="text" id="inStoreAddr" placeholder="例如：沙巴·亚庇加雅街 68 号 2 楼">
     </div>
-    <div class="field-group">
-      <label>同步上架服务项目与公开价格 (以逗号隔开)</label>
-      <textarea id="storeServices" rows="3" placeholder="例如：精油全身调理 RM138, 经络穴位推拿 RM98, 宠物药浴 RM80"></textarea>
+    <div class="form-item">
+      <label>营业时间</label>
+      <input type="text" id="inStoreHours" value="10:00 - 22:30">
     </div>
-    <button style="width: 100%; padding: 14px; border: none; border-radius: 12px; background: #0D9488; color: #fff; font-weight: 900; font-size: 14px; cursor: pointer;" onclick="alert('✅ 门店信息与服务已提交！审核认证通过后，将自动实时同步至 Vgo 顾客大厅。')">
-      提交审核并一键同步平台
-    </button>
+    <div class="form-item">
+      <label>同步上架服务项目列表 (以逗号隔开)</label>
+      <textarea id="inStoreServices" rows="3" placeholder="例如：中式经络推拿, 植物精油调理, 草本足道"></textarea>
+    </div>
+
+    <button class="btn-sync" onclick="handleStoreSync()">提交认证并一键同步大厅</button>
   </div>
+
+  <script src="../modules/catalogDatabase.js"></script>
+  <script src="../modules/merchantSyncEngine.js"></script>
+  <script>
+    function handleStoreSync() {
+      const name = document.getElementById('inStoreName').value.trim();
+      const cat = document.getElementById('inStoreCategory').value.trim();
+      const addr = document.getElementById('inStoreAddr').value.trim();
+      const hours = document.getElementById('inStoreHours').value.trim();
+      const services = document.getElementById('inStoreServices').value.trim();
+
+      if (!name || !addr || !services) {
+        alert('请完整填写店铺全称、地址及至少一项服务！');
+        return;
+      }
+
+      try {
+        const result = window.vgoMerchantSync.registerAndSyncStore({
+          name: name,
+          category: cat,
+          address: addr,
+          openTime: hours,
+          services: services
+        });
+        alert('✅ 恭喜！门店 [' + result.name + '] 资质已认证！\\n相关服务与价格已自动实时同步至 Vgo 顾客大厅。');
+        window.location.href = '../customer/index.html';
+      } catch (err) {
+        alert('同步失败: ' + err.message);
+      }
+    }
+  </script>
 </body>
 </html>

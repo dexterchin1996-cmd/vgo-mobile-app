@@ -3,376 +3,462 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Vgo - 综合手艺人与商家服务撮合平台</title>
+  <title>Vgo - 手艺人技能撮合与实体商户服务平台</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../assets/css/design-system.css">
   <style>
-    .hub-header {
+    :root {
+      --theme-teal: #0D9488;
+      --theme-teal-light: #CCFBF1;
+      --theme-orange: #EA580C;
+      --theme-orange-light: #FFEDD5;
+      --theme-blue: #0284C7;
+      --theme-blue-light: #E0F2FE;
+    }
+    .header-bar {
       position: sticky; top: 0; z-index: 100;
-      background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px);
       padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1px solid var(--color-border);
     }
-    .brand-group { display: flex; align-items: center; gap: 10px; }
-    .brand-icon {
-      width: 40px; height: 40px; border-radius: 12px;
-      background: linear-gradient(135deg, #F59E0B 20%, #0D9488 50%, #0284C7 80%);
+    .brand-cluster { display: flex; align-items: center; gap: 10px; }
+    .brand-symbol {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg, #F59E0B 10%, #0D9488 50%, #0284C7 90%);
       color: #fff; display: flex; align-items: center; justify-content: center;
-      font-weight: 900; font-size: 22px; box-shadow: var(--shadow-md);
+      font-weight: 900; font-size: 24px; box-shadow: var(--shadow-md);
     }
-    .region-box {
+    .market-pill-box {
       display: flex; background: #EEF2F6; padding: 3px; border-radius: var(--radius-full);
       border: 1px solid var(--color-border);
     }
-    .region-btn {
-      border: none; background: transparent; padding: 5px 10px; border-radius: var(--radius-full);
+    .market-btn {
+      border: none; background: transparent; padding: 6px 11px; border-radius: var(--radius-full);
       font-size: 11px; font-weight: 700; color: var(--color-text-sub); cursor: pointer;
     }
-    .region-btn.active { background: #FFFFFF; color: var(--color-text-main); box-shadow: var(--shadow-sm); }
+    .market-btn.active { background: #fff; color: var(--color-text-main); box-shadow: var(--shadow-sm); }
 
-    /* 搜索栏与双模切换 (找手艺人 vs 找店铺) */
-    .mode-switch-tabs {
+    /* 平台双模切换：精准找手艺人 vs 探索实体门店 */
+    .dual-mode-tabs {
       display: flex; margin: 12px 16px 8px; background: #E2E8F0; padding: 3px; border-radius: 14px;
     }
-    .mode-tab-btn {
-      flex: 1; padding: 8px; border: none; border-radius: 11px; background: transparent;
-      font-size: 13px; font-weight: 800; color: var(--color-text-sub); cursor: pointer; transition: all 0.2s;
+    .dual-tab-btn {
+      flex: 1; padding: 10px; border: none; border-radius: 11px; background: transparent;
+      font-size: 13.5px; font-weight: 800; color: var(--color-text-sub); cursor: pointer; transition: all 0.2s;
     }
-    .mode-tab-btn.active { background: #fff; color: var(--color-text-main); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+    .dual-tab-btn.active { background: #fff; color: var(--color-text-main); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
-    /* 五大手艺人类目快捷金刚区 */
-    .skills-nav-row {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 8px 16px 14px;
+    /* 四大手艺人门类图标条 */
+    .artisan-category-nav {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 6px 16px 12px;
     }
-    .skill-nav-btn {
+    .cat-btn-card {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 10px 6px; background: #fff; border: 1px solid var(--color-border);
-      border-radius: 14px; cursor: pointer; box-shadow: var(--shadow-sm);
+      padding: 10px 4px; background: #fff; border: 1.5px solid var(--color-border);
+      border-radius: 14px; cursor: pointer; box-shadow: var(--shadow-sm); transition: all 0.2s;
     }
-    .skill-nav-btn.active { border-color: #0D9488; background: #F0FDFA; }
-    .skill-icon-circle {
-      width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 17px; margin-bottom: 6px;
+    .cat-btn-card.active { border-color: var(--theme-teal); background: var(--theme-teal-light); }
+    .cat-icon-round {
+      width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; margin-bottom: 6px;
     }
 
-    /* 服务卡片列表 */
-    .items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px; }
-    .artisan-card {
+    /* 服务瀑布流卡片 */
+    .services-grid-box { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px; }
+    .sku-card {
       background: #fff; border-radius: 16px; border: 1px solid var(--color-border);
       overflow: hidden; display: flex; flex-direction: column; cursor: pointer;
       box-shadow: var(--shadow-sm); transition: transform 0.15s;
     }
-    .artisan-card:active { transform: scale(0.98); }
-    .card-top-tag { padding: 8px 10px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center; }
-    .artisan-role { font-size: 10.5px; font-weight: 800; color: #0D9488; }
-    .card-content-box { padding: 12px; display: flex; flex-direction: column; flex: 1; }
-    .service-headline { font-size: 13.5px; font-weight: 800; line-height: 1.35; margin-bottom: 6px; }
-    .service-desc-snippet { font-size: 11px; color: var(--color-text-muted); line-height: 1.35; margin-bottom: 10px; flex: 1; }
-    .card-bottom-bar { display: flex; align-items: baseline; justify-content: space-between; padding-top: 8px; border-top: 1px dashed var(--color-border); }
-    .price-tag { font-size: 16px; font-weight: 900; color: #DC2626; }
-
-    /* 真实客户反馈轮播/列表展示区 */
-    .reviews-section {
-      margin: 22px 16px 10px; background: #FFFBEB; border: 1.5px solid #FDE68A;
-      border-radius: 16px; padding: 14px 16px;
+    .sku-card:active { transform: scale(0.98); }
+    .sku-header-tag {
+      padding: 8px 10px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9;
+      display: flex; justify-content: space-between; align-items: center;
     }
-    .reviews-title { font-size: 14px; font-weight: 900; color: #92400E; display: flex; align-items: center; justify-content: space-between; }
-    .review-bubble {
-      background: #fff; border-radius: 12px; padding: 10px 12px; margin-top: 10px;
-      border: 1px solid #FEF3C7; font-size: 11.5px; line-height: 1.4;
+    .sku-body { padding: 12px; display: flex; flex-direction: column; flex: 1; }
+    .sku-title { font-size: 13.5px; font-weight: 800; line-height: 1.35; margin-bottom: 6px; }
+    .sku-desc { font-size: 11px; color: var(--color-text-muted); line-height: 1.35; margin-bottom: 8px; flex: 1; }
+    .sku-footer {
+      display: flex; align-items: baseline; justify-content: space-between;
+      border-top: 1px dashed var(--color-border); padding-top: 8px;
+    }
+    .sku-price { font-size: 16px; font-weight: 900; color: var(--color-danger); }
+
+    /* 认证实体门店卡片 */
+    .merchant-card-row {
+      grid-column: span 2; background: #fff; border-radius: 16px; border: 1.5px solid var(--color-border);
+      padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-sm); cursor: pointer;
+    }
+    .badge-verified {
+      font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px;
+      background: var(--theme-teal-light); color: var(--theme-teal);
     }
 
-    /* 抽屉与表单 */
-    .scrim-layer {
+    /* 真实客户评价推荐看板 */
+    .reviews-hub-box {
+      margin: 20px 16px 12px; background: #FFFBEB; border: 1.5px solid #FDE68A;
+      border-radius: 16px; padding: 16px;
+    }
+    .review-item {
+      background: #fff; border-radius: 12px; padding: 12px; margin-top: 10px;
+      border: 1px solid #FEF3C7; font-size: 12px; line-height: 1.45;
+    }
+
+    /* 抽屉与参数化配置器 */
+    .drawer-mask {
       position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); z-index: 200;
       display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px);
     }
-    .sheet-box {
-      width: 100%; max-width: 520px; background: #fff; border-radius: 24px 24px 0 0;
+    .drawer-panel {
+      width: 100%; max-width: 540px; background: #fff; border-radius: 24px 24px 0 0;
       padding: 20px 20px calc(20px + var(--safe-bottom)); max-height: 88vh; overflow-y: auto;
     }
-    .field-label { font-size: 12px; font-weight: 800; color: var(--color-text-sub); margin-bottom: 6px; display: block; }
-    .field-input {
-      width: 100%; padding: 12px 14px; border: 1.5px solid var(--color-border); border-radius: 12px;
-      font-size: 14px; outline: none; background: #F8FAFC; margin-bottom: 12px;
+    .opt-chip {
+      display: inline-block; padding: 6px 12px; border-radius: 8px; background: #F1F5F9;
+      border: 1px solid var(--color-border); font-size: 12px; font-weight: 700; margin: 4px 6px 4px 0; cursor: pointer;
     }
-    .btn-submit-job {
+    .opt-chip.selected { border-color: var(--theme-teal); background: var(--theme-teal-light); color: var(--theme-teal); }
+    .bill-receipt {
+      background: #F8FAFC; border: 1px solid var(--color-border); border-radius: 12px;
+      padding: 12px; margin: 14px 0; font-size: 12px;
+    }
+    .btn-dispatch {
       width: 100%; padding: 15px; border: none; border-radius: 14px;
-      background: #0D9488; color: #fff; font-weight: 900; font-size: 15px; cursor: pointer;
+      background: var(--theme-teal); color: #fff; font-weight: 900; font-size: 15px; cursor: pointer;
     }
-
-    /* 底部导航条 */
-    .main-nav-bar {
+    .bottom-nav-hub {
       position: fixed; bottom: 0; left: 0; right: 0; height: calc(56px + var(--safe-bottom));
       padding-bottom: var(--safe-bottom); background: rgba(255, 255, 255, 0.98);
       backdrop-filter: blur(16px); display: flex; border-top: 1px solid var(--color-border); z-index: 120;
     }
-    .nav-cell {
+    .nav-tab-cell {
       flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
       color: var(--color-text-muted); font-size: 10px; font-weight: 600; cursor: pointer; gap: 3px;
     }
-    .nav-cell.active { color: #0D9488; }
+    .nav-tab-cell.active { color: var(--theme-teal); }
   </style>
 </head>
 <body>
 
-  <!-- 头部平台控制栏 -->
-  <header class="hub-header">
-    <div class="brand-group">
-      <div class="brand-icon">V</div>
+  <!-- 顶部状态栏 -->
+  <header class="header-bar">
+    <div class="brand-cluster">
+      <div class="brand-symbol">V</div>
       <div>
-        <h1 style="font-size: 17px; font-weight: 900;">Vgo 手艺人平台</h1>
-        <div style="font-size: 10.5px; color: var(--color-text-muted);"><i class="fas fa-location-dot" style="color: #0D9488;"></i> <span id="locDisplay">沙巴·亚庇 (Kota Kinabalu)</span></div>
+        <h1 style="font-size: 17px; font-weight: 900;">Vgo 平台</h1>
+        <div style="font-size: 10.5px; color: var(--color-text-muted);"><i class="fas fa-location-dot" style="color: var(--theme-teal);"></i> <span id="locBanner">沙巴·亚庇 (Kota Kinabalu)</span></div>
       </div>
     </div>
-    <div class="region-box">
-      <button class="region-btn active" id="btnMY" onclick="switchMarket('MY')">🇲🇾 马来西亚</button>
-      <button class="region-btn" id="btnSG" onclick="switchMarket('SG')">🇸🇬 新加坡</button>
+    <div class="market-pill-box">
+      <button class="market-btn active" id="btnMY" onclick="switchMarket('MY')">🇲🇾 马来西亚</button>
+      <button class="market-btn" id="btnSG" onclick="switchMarket('SG')">🇸🇬 新加坡</button>
     </div>
   </header>
 
-  <!-- 顾客模式切换：找手艺人接单 vs 找入驻实体门店 -->
-  <div class="mode-switch-tabs">
-    <button class="mode-tab-btn active" id="tabModeArtisans" onclick="setBrowseMode('artisans')">
-      <i class="fas fa-user-check"></i> 精选手艺人·上门/预约
+  <!-- 双模导航：精准手艺人 vs 认证实体门店 -->
+  <div class="dual-mode-tabs">
+    <button class="dual-tab-btn active" id="tabArtisans" onclick="setDualMode('artisans')">
+      <i class="fas fa-user-check"></i> 精选手艺人 (兼职上门/预约)
     </button>
-    <button class="mode-tab-btn" id="tabModeMerchants" onclick="setBrowseMode('merchants')">
-      <i class="fas fa-store"></i> 认证实体店铺·到店核销
+    <button class="dual-tab-btn" id="tabMerchants" onclick="setDualMode('merchants')">
+      <i class="fas fa-store"></i> 认证实体门店 (到店核销)
     </button>
   </div>
 
-  <!-- 手艺人四大主流大类导航 (按摩师 / 美容师 / 宠物美容 / 水电工) -->
-  <div class="skills-nav-row" id="skillsNavContainer">
-    <div class="skill-nav-btn active" id="btn_massage" onclick="selectSkillCategory('massage')">
-      <div class="skill-icon-circle" style="background: #CCFBF1; color: #0D9488;"><i class="fas fa-spa"></i></div>
+  <!-- 手艺人四大主流大类导航 (理疗推拿 / 美容美睫 / 宠物洗护 / 水电急修) -->
+  <div class="artisan-category-nav" id="categoryNavPanel">
+    <div class="cat-btn-card active" id="cbtn_massage" onclick="selectSkill('massage')">
+      <div class="cat-icon-round" style="background: #CCFBF1; color: #0D9488;"><i class="fas fa-spa"></i></div>
       <span style="font-size: 11px; font-weight: 800;">理疗推拿</span>
     </div>
-    <div class="skill-nav-btn" id="btn_beauty" onclick="selectSkillCategory('beauty')">
-      <div class="skill-icon-circle" style="background: #FCE7F3; color: #DB2777;"><i class="fas fa-wand-magic-sparkles"></i></div>
+    <div class="cat-btn-card" id="cbtn_beauty" onclick="selectSkill('beauty')">
+      <div class="cat-icon-round" style="background: #FCE7F3; color: #DB2777;"><i class="fas fa-wand-magic-sparkles"></i></div>
       <span style="font-size: 11px; font-weight: 800;">美容美睫</span>
     </div>
-    <div class="skill-nav-btn" id="btn_pet" onclick="selectSkillCategory('pet')">
-      <div class="skill-icon-circle" style="background: #FEF3C7; color: #D97706;"><i class="fas fa-paw"></i></div>
+    <div class="cat-btn-card" id="cbtn_pet" onclick="selectSkill('pet')">
+      <div class="cat-icon-round" style="background: #FEF3C7; color: #D97706;"><i class="fas fa-paw"></i></div>
       <span style="font-size: 11px; font-weight: 800;">宠物美容</span>
     </div>
-    <div class="skill-nav-btn" id="btn_handyman" onclick="selectSkillCategory('handyman')">
-      <div class="skill-icon-circle" style="background: #E0F2FE; color: #0284C7;"><i class="fas fa-wrench"></i></div>
+    <div class="cat-btn-card" id="cbtn_handyman" onclick="selectSkill('handyman')">
+      <div class="cat-icon-round" style="background: #E0F2FE; color: #0284C7;"><i class="fas fa-wrench"></i></div>
       <span style="font-size: 11px; font-weight: 800;">水电急修</span>
     </div>
   </div>
 
-  <!-- 服务网格 / 店铺列表 -->
-  <div class="items-grid" id="mainDisplayGrid"></div>
+  <!-- 动态服务项目/商户大厅网格 -->
+  <div class="services-grid-box" id="mainDisplayGrid"></div>
 
-  <!-- 真实顾客口碑反馈与推荐看板 (解决信任与口碑痛点) -->
-  <div class="reviews-section">
-    <div class="reviews-title">
-      <span><i class="fas fa-comment-dots"></i> 来自客户的真实反馈与推荐</span>
-      <span style="font-size: 11px; color: #B45309;">100% 真实订单核验</span>
+  <!-- 真实客户评价推荐看板 -->
+  <div class="reviews-hub-box">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 14px; font-weight: 900; color: #92400E;"><i class="fas fa-comments"></i> 真实客户反馈与高光推荐</span>
+      <span style="font-size: 11px; color: #B45309; font-weight: 700;">履约后真实评测</span>
     </div>
-    <div id="reviewsContainer"></div>
+    <div id="reviewsList"></div>
   </div>
 
   <!-- 底部固定导航 -->
-  <nav class="main-nav-bar">
-    <div class="nav-cell active" onclick="alert('已在服务大厅')"><i class="fas fa-compass"></i><span>服务大厅</span></div>
-    <div class="nav-cell" onclick="openOrderModal()"><i class="fas fa-receipt"></i><span>我的工单</span></div>
-    <div class="nav-cell" onclick="openSupportModal()"><i class="fas fa-headset"></i><span>调度客服</span></div>
-    <div class="nav-cell" onclick="alert('已登录 Vgo 客户账户')"><i class="fas fa-user-check"></i><span>客户中心</span></div>
+  <nav class="bottom-nav-hub">
+    <div class="nav-tab-cell active" onclick="alert('已在大厅')"><i class="fas fa-compass"></i><span>服务大厅</span></div>
+    <div class="nav-tab-cell" onclick="alert('暂无正在履约中的工单')"><i class="fas fa-clipboard-check"></i><span>履约订单</span></div>
+    <div class="nav-tab-cell" onclick="openHotlineDrawer()"><i class="fas fa-headset"></i><span>调度客服</span></div>
+    <div class="nav-tab-cell" onclick="alert('已通过移动端 Capacitor 原生沙箱认证')"><i class="fas fa-user-shield"></i><span>客户中心</span></div>
   </nav>
 
-  <!-- 提交需求/选择手艺人抽屉 -->
-  <div id="bookingDrawer" class="scrim-layer">
-    <div class="sheet-box">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="font-size: 17px; font-weight: 900;">选择服务并提交工单</h3>
-        <button onclick="closeSheet('bookingDrawer')" style="border:none; background:none; font-size: 22px; cursor:pointer;">&times;</button>
+  <!-- 定制 SKU 属性与下单抽屉 -->
+  <div id="customSkuDrawer" class="drawer-mask">
+    <div class="drawer-panel">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h3 style="font-size: 17px; font-weight: 900;" id="drawerItemName">配置服务工单</h3>
+        <button onclick="closeDrawer('customSkuDrawer')" style="border:none; background:none; font-size: 22px; cursor:pointer;">&times;</button>
       </div>
-      <div style="background: #F1F5F9; padding: 12px; border-radius: 12px; margin-bottom: 14px;">
-        <div style="display: flex; justify-content: space-between; font-weight: 900;">
-          <span id="targetJobName">项目名称</span>
-          <span id="targetJobPrice" style="color: #DC2626;">RM 0.00</span>
-        </div>
-        <div id="targetJobArtisan" style="font-size: 11.5px; color: #0D9488; margin-top: 4px;">专业手艺人</div>
+      <div style="font-size: 11.5px; color: var(--color-text-sub); margin-bottom: 12px;" id="drawerItemSop">标准履约SOP</div>
+
+      <!-- 动态属性选项挂载区 -->
+      <div id="drawerOptionsArea"></div>
+
+      <!-- 实时明细计算清单 -->
+      <div class="bill-receipt" id="billReceiptArea"></div>
+
+      <div style="margin-bottom: 12px;">
+        <label style="font-size: 12px; font-weight: 800; display: block; margin-bottom: 6px;">联系人姓名与电话</label>
+        <input type="text" id="orderCustPhone" style="width: 100%; padding: 11px; border: 1.5px solid var(--color-border); border-radius: 12px; font-size: 13.5px;" placeholder="例如：林女士 0128172166">
       </div>
-      <label class="field-label">您的称呼与联系电话</label>
-      <input type="text" id="custNamePhone" class="field-input" placeholder="例如：林女士 0128172166">
-      <label class="field-label">服务/上门详细地址（如为到店则填写期望门店）</label>
-      <input type="text" id="custAddress" class="field-input" placeholder="输入住宅大厦单元号 或 期望就近区域">
-      <label class="field-label">期望服务时间</label>
-      <input type="text" id="custTime" class="field-input" value="立即响应 / 预约今日时间">
-      <button class="btn-submit-job" onclick="submitArtisanJob()">提交工单并匹配手艺人</button>
+      <div style="margin-bottom: 14px;">
+        <label style="font-size: 12px; font-weight: 800; display: block; margin-bottom: 6px;">服务详细地址 (或指定到店)</label>
+        <input type="text" id="orderCustAddress" style="width: 100%; padding: 11px; border: 1.5px solid var(--color-border); border-radius: 12px; font-size: 13.5px;" placeholder="输入大厦/单元号，或期望就近区域">
+      </div>
+
+      <button class="btn-dispatch" id="btnDispatchConfirm" onclick="submitDetailedJob()">提交工单并匹配手艺人</button>
     </div>
   </div>
 
-  <!-- 客服与调度抽屉 -->
-  <div id="supportDrawer" class="scrim-layer">
-    <div class="sheet-box">
+  <!-- 客服调度抽屉 -->
+  <div id="hotlineDrawer" class="drawer-mask">
+    <div class="drawer-panel">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="font-size: 17px; font-weight: 900;">Vgo 官方调度客服</h3>
-        <button onclick="closeSheet('supportDrawer')" style="border:none; background:none; font-size: 22px; cursor:pointer;">&times;</button>
+        <h3 style="font-size: 17px; font-weight: 900;">Vgo 平台统一调度中心</h3>
+        <button onclick="closeDrawer('hotlineDrawer')" style="border:none; background:none; font-size: 22px; cursor:pointer;">&times;</button>
       </div>
       <div style="padding: 14px; background: #F8FAFC; border: 1px solid var(--color-border); border-radius: 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
         <div style="display: flex; align-items: center; gap: 10px;">
           <i class="fab fa-whatsapp" style="font-size: 24px; color: #25D366;"></i>
           <div>
             <div style="font-weight: 800; font-size: 13.5px;">WhatsApp 调度专线</div>
-            <div style="font-size: 11px; color: var(--color-text-muted);">+60128172166</div>
+            <div style="font-size: 11px; color: var(--color-text-muted);">+60128172166 (24小时全天候)</div>
           </div>
         </div>
-        <a href="https://wa.me/60128172166" target="_blank" style="color: #0D9488; font-weight: 800; text-decoration: none;">发信息</a>
+        <a href="https://wa.me/60128172166" target="_blank" style="color: var(--theme-teal); font-weight: 800; text-decoration: none;">即刻发信</a>
       </div>
       <div style="padding: 14px; background: #F8FAFC; border: 1px solid var(--color-border); border-radius: 14px; display: flex; align-items: center; justify-content: space-between;">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <i class="fas fa-phone-volume" style="font-size: 20px; color: #EA580C;"></i>
+          <i class="fas fa-phone-volume" style="font-size: 20px; color: var(--theme-orange);"></i>
           <div>
-            <div style="font-weight: 800; font-size: 13.5px;">24H 应急急调热线</div>
-            <div style="font-size: 11px; color: var(--color-text-muted);">01172691788</div>
+            <div style="font-weight: 800; font-size: 13.5px;">24H 应急抢修热线</div>
+            <div style="font-size: 11px; color: var(--color-text-muted);">01172691788 (一键拨通)</div>
           </div>
         </div>
-        <a href="tel:01172691788" style="color: #EA580C; font-weight: 800; text-decoration: none;">拨打</a>
+        <a href="tel:01172691788" style="color: var(--theme-orange); font-weight: 800; text-decoration: none;">直接拨打</a>
       </div>
     </div>
   </div>
 
   <script src="../modules/catalogDatabase.js"></script>
+  <script src="../modules/pricingEngine.js"></script>
+  <script src="../modules/merchantSyncEngine.js"></script>
+
   <script>
     let currentMarket = 'MY';
-    let currentBrowseMode = 'artisans'; // artisans 或 merchants
+    let currentMode = 'artisans';
     let currentSkill = 'massage';
-    let activeItem = null;
+    let selectedSku = null;
+    let selectedOptionsList = [];
 
     function switchMarket(m) {
       currentMarket = m;
+      const info = window.vgoPricing.setRegion(m);
       document.getElementById('btnMY').classList.toggle('active', m === 'MY');
       document.getElementById('btnSG').classList.toggle('active', m === 'SG');
-      document.getElementById('locDisplay').innerText = m === 'MY' ? '沙巴·亚庇 (Kota Kinabalu)' : '新加坡市中心 (Marina Bay)';
-      renderMainContent();
+      document.getElementById('locBanner').innerText = info.city;
+      renderMainGrid();
     }
 
-    function setBrowseMode(mode) {
-      currentBrowseMode = mode;
-      document.getElementById('tabModeArtisans').classList.toggle('active', mode === 'artisans');
-      document.getElementById('tabModeMerchants').classList.toggle('active', mode === 'merchants');
-      document.getElementById('skillsNavContainer').style.display = mode === 'artisans' ? 'grid' : 'none';
-      renderMainContent();
+    function setDualMode(mode) {
+      currentMode = mode;
+      document.getElementById('tabArtisans').classList.toggle('active', mode === 'artisans');
+      document.getElementById('tabMerchants').classList.toggle('active', mode === 'merchants');
+      document.getElementById('categoryNavPanel').style.display = mode === 'artisans' ? 'grid' : 'none';
+      renderMainGrid();
     }
 
-    function selectSkillCategory(skillKey) {
-      currentSkill = skillKey;
-      document.querySelectorAll('.skill-nav-btn').forEach(b => b.classList.remove('active'));
-      const btn = document.getElementById('btn_' + skillKey);
+    function selectSkill(skill) {
+      currentSkill = skill;
+      document.querySelectorAll('.cat-btn-card').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('cbtn_' + skill);
       if (btn) btn.classList.add('active');
-      renderMainContent();
+      renderMainGrid();
     }
 
-    function renderMainContent() {
+    function renderMainGrid() {
       const container = document.getElementById('mainDisplayGrid');
       const currency = currentMarket === 'MY' ? 'RM' : 'S$';
 
-      if (currentBrowseMode === 'artisans') {
+      if (currentMode === 'artisans') {
         const items = window.vgoCatalog[currentSkill] || [];
         container.innerHTML = items.map(item => {
-          const raw = currentMarket === 'MY' ? item.basePriceMY : item.basePriceSG;
-          const tax = currentMarket === 'MY' ? 0.08 : 0.09;
-          const price = Math.round(raw * (1 + tax));
-
+          const rawPrice = currentMarket === 'MY' ? item.basePriceMY : item.basePriceSG;
+          const quote = window.vgoPricing.calculateDetailedQuote(rawPrice, [], item.category === 'handyman');
           return `
-            <div class="artisan-card" onclick="openBookingDrawer('${item.id}')">
-              <div class="card-top-tag">
-                <span class="artisan-role"><i class="fas fa-award"></i> ${item.artisanTitle}</span>
+            <div class="sku-card" onclick="openSkuCustomizer('${item.id}')">
+              <div class="sku-header-tag">
+                <span style="font-size: 11px; font-weight: 800; color: #0D9488;"><i class="fas fa-user-check"></i> ${item.artisanTitle}</span>
                 <span style="font-size: 10px; background: #CCFBF1; color: #0D9488; padding: 2px 6px; border-radius: 4px; font-weight: 800;">${item.badge}</span>
               </div>
-              <div class="card-content-box">
-                <div class="service-headline">${item.name}</div>
-                <div class="service-desc-snippet">${item.desc}</div>
-                <div class="card-bottom-bar">
-                  <span class="price-tag">${currency} ${price}</span>
-                  <button style="border:none; background: #0D9488; color:#fff; border-radius:50%; width:26px; height:26px;"><i class="fas fa-arrow-right" style="font-size:11px;"></i></button>
+              <div class="sku-body">
+                <div class="sku-title">${item.name}</div>
+                <div class="sku-desc">${item.desc}</div>
+                <div style="font-size: 10px; color: #64748B; margin-bottom: 8px;"><i class="fas fa-clock"></i> ${item.duration} · ${item.mode}</div>
+                <div class="sku-footer">
+                  <span class="sku-price">${quote.currency} ${quote.finalTotal}</span>
+                  <button style="border:none; background: #0D9488; color:#fff; border-radius:50%; width:26px; height:26px;"><i class="fas fa-plus" style="font-size:11px;"></i></button>
                 </div>
               </div>
             </div>
           `;
         }).join('');
       } else {
-        // 展示认证入驻实体店铺列表 (商家同步内容)
-        const shops = window.vgoCatalog.merchants || [];
-        container.innerHTML = shops.map(shop => `
-          <div class="artisan-card" style="grid-column: span 2;" onclick="alert('已为您锁定门店：' + '${shop.name}' + '\\n服务项目：' + '${shop.services.join(', ')}')">
-            <div class="card-top-tag" style="background: #F0FDFA;">
-              <span style="font-size: 11px; font-weight: 800; color: #0D9488;"><i class="fas fa-shield-check"></i> 平台认证合规商户</span>
-              <span style="font-size: 11px; color: #F59E0B; font-weight: 800;"><i class="fas fa-star"></i> ${shop.rating} (${shop.reviewsCount})</span>
-            </div>
-            <div class="card-content-box">
-              <div style="font-size: 15px; font-weight: 900;">${shop.name}</div>
-              <div style="font-size: 11.5px; color: var(--color-text-muted); margin: 4px 0 8px;"><i class="fas fa-map-pin"></i> ${shop.address}</div>
-              <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                ${shop.services.map(s => `<span style="font-size:10.5px; background:#F1F5F9; padding:2px 8px; border-radius:6px; font-weight:700;">${s}</span>`).join('')}
+        // 展示认证入驻商户列表 (支持商家端动态同步上架)
+        const merchants = window.vgoMerchantSync.getAllSyncedMerchants();
+        container.innerHTML = merchants.map(m => `
+          <div class="merchant-card-row" onclick="alert('已为您锁定门店：' + '${m.name}' + '\\n地址：' + '${m.address}' + '\\n服务项目：' + '${m.services.join(' / ')}')">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <span class="badge-verified"><i class="fas fa-certificate"></i> 平台官方认证 (${m.verifiedCode})</span>
+                <h3 style="font-size: 15px; font-weight: 900; margin: 6px 0 2px;">${m.name}</h3>
+                <div style="font-size: 11.5px; color: #64748B;"><i class="fas fa-location-dot"></i> ${m.address} · 营业：${m.openTime}</div>
               </div>
+              <div style="font-size: 13px; font-weight: 900; color: #F59E0B; text-align: right;">
+                <i class="fas fa-star"></i> ${m.rating}
+                <div style="font-size: 10px; color: #94A3B8; font-weight: 600;">${m.reviewsCount}人已评价</div>
+              </div>
+            </div>
+            <div style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap;">
+              ${m.services.map(s => `<span style="font-size: 11px; background: #F1F5F9; padding: 3px 8px; border-radius: 6px; font-weight: 700;">${s}</span>`).join('')}
+            </div>
+            <div style="margin-top: 8px; font-size: 10.5px; color: #0D9488; font-weight: 700;">
+              设施保障: ${m.amenities.join(' · ')}
             </div>
           </div>
         `).join('');
       }
 
-      renderReviews();
+      renderReviewsBlock();
     }
 
-    function renderReviews() {
-      const container = document.getElementById('reviewsContainer');
+    function renderReviewsBlock() {
+      const revBox = document.getElementById('reviewsList');
       const list = window.vgoCatalog.reviews || [];
-      container.innerHTML = list.map(r => `
-        <div class="review-bubble">
+      revBox.innerHTML = list.map(r => `
+        <div class="review-item">
           <div style="display: flex; justify-content: space-between; font-weight: 800; color: #92400E;">
-            <span>${r.customerName} → 点选 [${r.artisanName}]</span>
+            <span>${r.customer} → 约选 [${r.artisan}]</span>
             <span>★★★★★ 5.0</span>
           </div>
-          <div style="margin: 4px 0; color: var(--color-text-main); font-size: 11.5px;">"${r.comment}"</div>
-          <div style="font-size: 10px; color: var(--color-text-muted); text-align: right;">服务：${r.serviceName} · ${r.date}</div>
+          <div style="margin: 4px 0; color: #0F172A; font-size: 11.5px;">"${r.content}"</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 10px; color: #64748B;">
+            <div>${r.tags.map(t => `<span style="background:#FEF3C7; color:#B45309; padding:2px 6px; border-radius:4px; margin-right:4px;">#${t}</span>`).join('')}</div>
+            <div>${r.service} · ${r.date}</div>
+          </div>
         </div>
       `).join('');
     }
 
-    function openBookingDrawer(id) {
+    function openSkuCustomizer(id) {
       let found = null;
-      for (const k in window.vgoCatalog) {
-        if (Array.isArray(window.vgoCatalog[k])) {
-          found = window.vgoCatalog[k].find(x => x.id === id);
-          if (found) break;
-        }
+      for (const k of ['massage', 'beauty', 'pet', 'handyman']) {
+        found = (window.vgoCatalog[k] || []).find(x => x.id === id);
+        if (found) break;
       }
       if (!found) return;
-      activeItem = found;
+      selectedSku = found;
+      selectedOptionsList = [];
 
-      const currency = currentMarket === 'MY' ? 'RM' : 'S$';
-      const raw = currentMarket === 'MY' ? found.basePriceMY : found.basePriceSG;
-      const tax = currentMarket === 'MY' ? 0.08 : 0.09;
-      const price = Math.round(raw * (1 + tax));
+      document.getElementById('drawerItemName').innerText = found.name;
+      document.getElementById('drawerItemSop').innerHTML = `<strong>标准交付SOP：</strong> ${found.sop.join(' → ')}`;
 
-      document.getElementById('targetJobName').innerText = found.name;
-      document.getElementById('targetJobPrice').innerText = `${currency} ${price} (含税预估)`;
-      document.getElementById('targetJobArtisan').innerText = `指派级别：${found.artisanTitle} · 履约形式：${found.mode}`;
-
-      document.getElementById('bookingDrawer').style.display = 'flex';
+      // 渲染属性与加价耗材选项
+      const optContainer = document.getElementById('drawerOptionsArea');
+      let html = '';
+      if (found.options) {
+        for (const optKey in found.options) {
+          const val = found.options[optKey];
+          html += `<div style="margin-bottom: 10px;"><label style="font-size: 12px; font-weight: 800; display: block; margin-bottom: 4px;">选择规格 / 属性：</label>`;
+          val.forEach((optItem, idx) => {
+            const isObj = typeof optItem === 'object';
+            const name = isObj ? optItem.name : optItem;
+            const extra = isObj ? (currentMarket === 'MY' ? optItem.extraMY : optItem.extraSG) : 0;
+            const extraLabel = extra > 0 ? ` (+${currentMarket === 'MY' ? 'RM' : 'S$'}${extra})` : '';
+            html += `<span class="opt-chip ${idx === 0 ? 'selected' : ''}" onclick="toggleOptionChip(this, '${name}', ${extra})">${name}${extraLabel}</span>`;
+          });
+          html += `</div>`;
+        }
+      }
+      optContainer.innerHTML = html;
+      recalculateDrawerBill();
+      document.getElementById('customSkuDrawer').style.display = 'flex';
     }
 
-    function submitArtisanJob() {
-      const contact = document.getElementById('custNamePhone').value.trim() || '客户';
-      const addr = document.getElementById('custAddress').value.trim() || '客户定位地址';
-      const time = document.getElementById('custTime').value.trim();
-      const sName = activeItem ? activeItem.name : 'Vgo 平台服务';
+    function toggleOptionChip(el, name, extra) {
+      const parent = el.parentNode;
+      parent.querySelectorAll('.opt-chip').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      // 重新收集
+      selectedOptionsList = [];
+      document.querySelectorAll('.opt-chip.selected').forEach(c => {
+        selectedOptionsList.push({ name: c.innerText });
+      });
+      recalculateDrawerBill();
+    }
 
-      closeSheet('bookingDrawer');
-      alert('🎉 工单已发布至手艺人抢单池！系统正精准通知对应师傅接单。');
+    function recalculateDrawerBill() {
+      if (!selectedSku) return;
+      const rawPrice = currentMarket === 'MY' ? selectedSku.basePriceMY : selectedSku.basePriceSG;
+      const quote = window.vgoPricing.calculateDetailedQuote(rawPrice, selectedOptionsList, selectedSku.category === 'handyman');
 
-      const text = encodeURIComponent(`【Vgo 工单需求】\\n服务：${sName}\\n客户：${contact}\\n地址：${addr}\\n时间：${time}\\n市场：${currentMarket}`);
+      document.getElementById('billReceiptArea').innerHTML = `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>基础服务工时费</span>
+          <span>${quote.currency} ${quote.base}.00</span>
+        </div>
+        ${quote.urgentFee > 0 ? `<div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #EA580C;"><span>24H 应急抢修保障附加费</span><span>+${quote.currency} ${quote.urgentFee}.00</span></div>` : ''}
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #64748B;">
+          <span>法定税费 (${quote.taxName})</span>
+          <span>+${quote.currency} ${quote.taxAmount}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: 14px; border-top: 1px dashed #CBD5E1; padding-top: 6px; margin-top: 6px;">
+          <span>预估总计金额 (含税明细)</span>
+          <span style="color: #DC2626;">${quote.currency} ${quote.finalTotal}</span>
+        </div>
+      `;
+    }
+
+    function submitDetailedJob() {
+      const phone = document.getElementById('orderCustPhone').value.trim() || '尊贵客户';
+      const addr = document.getElementById('orderCustAddress').value.trim() || '客户定位地址';
+      const rawPrice = currentMarket === 'MY' ? selectedSku.basePriceMY : selectedSku.basePriceSG;
+      const quote = window.vgoPricing.calculateDetailedQuote(rawPrice, selectedOptionsList, selectedSku.category === 'handyman');
+
+      closeDrawer('customSkuDrawer');
+      alert(`🎉 工单已提交撮合池！明细金额: ${quote.currency} ${quote.finalTotal} (${quote.taxName})。正在调度专属手艺人接单！`);
+
+      const text = encodeURIComponent(`【Vgo 精准工单】\\n项目：${selectedSku.name}\\n客户：${phone}\\n地址：${addr}\\n含税预算：${quote.currency} ${quote.finalTotal} (${quote.taxName})\\n国家市场：${currentMarket}`);
       window.location.href = `https://wa.me/60128172166?text=${text}`;
     }
 
-    function openOrderModal() { alert('Vgo 工单追踪：当前正在为您撮合最优手艺人！'); }
-    function openSupportModal() { document.getElementById('supportDrawer').style.display = 'flex'; }
-    function closeSheet(id) { document.getElementById(id).style.display = 'none'; }
+    function openHotlineDrawer() { document.getElementById('hotlineDrawer').style.display = 'flex'; }
+    function closeDrawer(id) { document.getElementById(id).style.display = 'none'; }
 
-    window.onload = renderMainContent;
+    window.onload = renderMainGrid;
   </script>
 </body>
 </html>

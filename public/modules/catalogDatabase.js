@@ -1,165 +1,267 @@
+/**
+ * Vgo 平台核心服务数据字典与口碑数据库
+ * 规范：4级结构（领域 -> 工种 -> 标准服务SKU -> 属性参数/定制耗材）
+ */
 window.vgoCatalog = {
-  // 1. 经络理疗与芳香推拿手艺
+  // 一、健康理疗与芳香养生
   massage: [
     {
-      id: 'm1',
+      id: 'm_cervical',
       category: 'massage',
-      name: '中式经络穴位推拿调理',
+      name: '办公室肩颈定向深层筋膜解结',
       artisanTitle: '资深经络调理师',
-      badge: '金牌手艺',
-      basePriceMY: 98,
-      basePriceSG: 65,
-      duration: '60分钟',
-      desc: '精准辨证循经点穴，针对颈肩腰背僵硬深层松解，排湿活络。',
-      mode: '技师上门 / 到店'
+      badge: '久坐必选',
+      basePriceMY: 78,
+      basePriceSG: 48,
+      duration: '45分钟',
+      desc: '精准辨证斜方肌、肩胛提肌劳损硬结，点按风池、肩井穴，深层松解肌筋膜粘连。',
+      sop: ['75%酒精与草本免洗液双手消毒', '热毛巾敷肩软化僵硬肌群', '循经深层点穴推揉', '无纺布温润拭净'],
+      options: {
+        pressure: ['柔和舒缓', '适中渗透', '重压深解'],
+        oil: [
+          { name: '草本通络植物基础油', extraMY: 0, extraSG: 0 },
+          { name: '高纯度老姜生姜温阳精油', extraMY: 20, extraSG: 15 },
+          { name: '法国薰衣草助眠单方精油', extraMY: 25, extraSG: 18 }
+        ]
+      },
+      portfolio: ['颈椎活动度改善', '斜方肌高耸软化对比'],
+      mode: '手艺人上门 / 到店'
     },
     {
-      id: 'm2',
+      id: 'm_fullbody',
       category: 'massage',
-      name: '天然植物精油全身芳香调理',
-      artisanTitle: '高级芳疗手艺人',
-      badge: '纯正植萃',
-      basePriceMY: 138,
-      basePriceSG: 88,
+      name: '全息督脉十二经络全身穴位推拿',
+      artisanTitle: '高级理疗推拿师',
+      badge: '深度排湿',
+      basePriceMY: 118,
+      basePriceSG: 75,
       duration: '90分钟',
-      desc: '植物芳香精油抚触渗透，安抚中枢神经，深度舒压促进睡眠。',
-      mode: '技师上门 / 到店'
+      desc: '背部督脉循行滚法、揉法，下肢膀胱经疏通，全面调节气血运行，改善长期乏力困重。',
+      sop: ['自带一次性无纺布隔脏床单', '全身关节被动牵引拉伸', '背部/四肢穴位系统推按', '头部穴位安神放松'],
+      options: {
+        pressure: ['标准适中', '传统重手法'],
+        oil: [
+          { name: '天然甜杏仁基底油', extraMY: 0, extraSG: 0 },
+          { name: '大马士革玫瑰滋养精油', extraMY: 30, extraSG: 20 }
+        ]
+      },
+      portfolio: ['背部经络通畅泛红', '脊柱侧旁肌紧张缓解'],
+      mode: '手艺人上门 / 到店'
     }
   ],
 
-  // 2. 美容美妆与皮肤手艺
+  // 二、生活美容与精细手艺
   beauty: [
     {
-      id: 'b1',
+      id: 'b_eyelash',
       category: 'beauty',
-      name: '日韩系轻奢美睫与眼部精修',
-      artisanTitle: '认证美睫造型师',
+      name: '日韩系轻奢单根无感睫毛嫁接',
+      artisanTitle: '认证高级美睫造型师',
       badge: '精细手工',
       basePriceMY: 110,
       basePriceSG: 75,
       duration: '80分钟',
-      desc: '一根一接无感嫁接，轻盈浓密，定制契合眼型的自然灵动弧度。',
+      desc: '一根真睫嫁接一根人造睫毛，距离根部0.5mm安全距离，零负重感，眼型量身定制。',
+      sop: ['眼部深层去蛋白清洁', '医用无刺激水凝胶眼膜隔离', '单根精密无感嫁接', '纳米冷雾喷雾固化防熏眼'],
+      options: {
+        material: [
+          { name: '进口抗菌蚕丝蛋白软毛 (120根)', extraMY: 0, extraSG: 0 },
+          { name: '哑光极细扁毛高密款 (160根)', extraMY: 25, extraSG: 18 },
+          { name: '婴儿弯自然山茶花款 (开花200根)', extraMY: 40, extraSG: 28 }
+        ],
+        curl: ['J自然微翘', 'B轻柔空气感', 'C芭比卷翘']
+      },
+      portfolio: ['单眼皮灵动放大实拍', '前后无负重感闭眼图'],
       mode: '手艺人上门 / 到店'
     },
     {
-      id: 'b2',
+      id: 'b_hydro',
       category: 'beauty',
-      name: '小气泡水光深层毛孔清洁护理',
-      artisanTitle: '专业皮肤管理师',
-      badge: '嫩肤焕亮',
-      basePriceMY: 128,
-      basePriceSG: 85,
+      name: '深层小气泡毛孔净化与高阶水光护理',
+      artisanTitle: '皮肤健康管理师',
+      badge: '净肤透亮',
+      basePriceMY: 138,
+      basePriceSG: 88,
       duration: '60分钟',
-      desc: '真空负压超微气泡导出黑头油脂，配合玻尿酸原液深层注水。',
+      desc: '真空微负压双向循环技术导出黑头与粉刺油脂，配合医用玻尿酸原液超声波深层导入。',
+      sop: ['氨基酸温和洁面', '果酸导出液T区黑头软化', '负压小气泡深层吸附毛孔', '医用冷敷贴镇定收缩毛孔'],
+      options: {
+        material: [
+          { name: '标准玻尿酸注水导入', extraMY: 0, extraSG: 0 },
+          { name: '胶原蛋白紧致导入 + 红蓝光修复', extraMY: 35, extraSG: 25 }
+        ]
+      },
+      portfolio: ['草莓鼻净化前后微距对比', '水光护理透亮光泽度'],
       mode: '到店体验 / 上门护理'
     }
   ],
 
-  // 3. 宠物美容与洗护手艺
+  // 三、宠物洗护与美容造型
   pet: [
     {
-      id: 'p1',
+      id: 'p_styling',
       category: 'pet',
-      name: '全犬种/猫咪专业精修毛与造型',
+      name: '全犬种/猫咪专业精修剪毛与洗护造型',
       artisanTitle: 'CKU认证高级宠物美容师',
-      badge: '持证手艺',
+      badge: '低应激洗护',
       basePriceMY: 90,
       basePriceSG: 60,
       duration: '90分钟',
-      desc: '根据骨骼体型手工剪毛修圆、清耳道、剪指甲、脚底毛剔除。',
-      mode: '上门洗护车 / 到店'
+      desc: '依据骨骼线条手工圆头修剪、贵宾/比熊泰迪熊造型修圆，含拔耳毛、剪趾甲、挤肛门腺。',
+      sop: ['体表健康检查(耳道/跳蚤/皮炎)', '恒温低噪吹风机吹干拉毛', '面部与四肢手工精修圆润', '爪垫脚底毛剔净与耳道清洁'],
+      options: {
+        petWeight: [
+          { name: '小型犬/猫 (0 - 5 kg)', extraMY: 0, extraSG: 0 },
+          { name: '中型犬 (5 - 12 kg)', extraMY: 30, extraSG: 20 },
+          { name: '大型犬 (12 - 25 kg)', extraMY: 60, extraSG: 40 }
+        ],
+        shampoo: [
+          { name: '低敏无泪植物配方香波', extraMY: 0, extraSG: 0 },
+          { name: '澳洲燕麦止痒除菌药浴香波', extraMY: 20, extraSG: 15 }
+        ]
+      },
+      portfolio: ['比熊圆头萌系修剪对比', '贵宾泰迪熊造型修剪'],
+      mode: '手艺人上门 / 到店'
     },
     {
-      id: 'p2',
+      id: 'p_spa',
       category: 'pet',
-      name: '宠物草本药浴微气泡去油舒敏SPA',
-      artisanTitle: '宠物健康养护师',
-      badge: '除菌去味',
+      name: '微气泡纳米草本药浴深层除螨SPA',
+      artisanTitle: '宠物皮毛护理专家',
+      badge: '除菌去屑',
       basePriceMY: 80,
       basePriceSG: 55,
       duration: '60分钟',
-      desc: '天然草本药浴改善皮屑发红，超细微纳米气泡深层清洁毛囊。',
-      mode: '上门服务 / 到店'
+      desc: '利用超细微纳米气泡渗透毛囊洗除皮屑与油脂红肿，搭配纯植物草本精粹修复皮肤屏障。',
+      sop: ['全身死毛去浮毛梳理', '草本药浴温水浸泡15分钟', '负离子轻柔吹风机烘干', '皮毛滋养精华喷雾防静电'],
+      options: {
+        petWeight: [
+          { name: '小型宠 (0 - 5 kg)', extraMY: 0, extraSG: 0 },
+          { name: '中大型宠 (5 - 15 kg)', extraMY: 25, extraSG: 18 }
+        ]
+      },
+      portfolio: ['红肿皮屑改善实拍', '毛发蓬松柔顺光泽'],
+      mode: '手艺人上门 / 到店'
     }
   ],
 
-  // 4. 水电与家装技术师傅
+  // 四、水电急修与工程维保
   handyman: [
     {
-      id: 'h1',
+      id: 'h_pipe',
       category: 'handyman',
-      name: '暗管爆裂 / 水管漏水急性抢修',
+      name: '墙体暗管爆裂 / 水管漏水急性抢修',
       artisanTitle: '资深持证水电工程师',
       badge: '30分急达',
       basePriceMY: 80,
       basePriceSG: 60,
-      duration: '即刻抢险',
-      desc: '精密声波仪器精准定位漏点，快速截水与热熔管路加固。',
-      mode: '师傅快速上门'
+      duration: '紧急出发',
+      desc: '高阻抗精密测漏仪精确定位漏水点，快速切除破损段管路，热熔 PPR 管道加固与打压测试。',
+      sop: ['进水主阀截断与现场保全', '仪器无损测漏精确定位', '原厂PPR加厚热熔焊接', '管网打压 0.8MPa 维持半小时验漏'],
+      options: {
+        parts: [
+          { name: '标准 PPR 管材与弯头配件 (含工料)', extraMY: 0, extraSG: 0 },
+          { name: '加装全铜加厚主控球阀配件', extraMY: 35, extraSG: 25 },
+          { name: '管网高水压减压阀总成更换', extraMY: 60, extraSG: 45 }
+        ]
+      },
+      portfolio: ['测漏热成像漏水点定位', 'PPR管焊接规范接头'],
+      mode: '工程师上门急修'
     },
     {
-      id: 'h2',
+      id: 'h_aircon',
       category: 'handyman',
-      name: '空调化学药水拆洗 (Chemical Wash)',
-      artisanTitle: '暖通空调高级技工',
-      badge: '深度除垢',
+      name: '分体冷气空调化学深度拆洗 (Chemical Wash)',
+      artisanTitle: '暖通制冷高级技工',
+      badge: '效能恢复',
       basePriceMY: 120,
       basePriceSG: 85,
       duration: '预约工时',
-      desc: '高压化学除藻药水彻底清洗风轮与蒸发器，测漏并回升制冷效能。',
-      mode: '师傅上门作业'
+      desc: '外壳风轮蒸发器完整拆卸，环保化学药水剥离霉菌与厚重积尘，消除异味并回升制冷能效。',
+      sop: ['周围墙面与家具防水保护布铺设', '蒸发器高压喷洒专用药水分解污垢', '高压水枪冲洗室外机散热器', '出风口风速与制冷温差检测复验'],
+      options: {
+        parts: [
+          { name: '单台挂机深度化学拆洗', extraMY: 0, extraSG: 0 },
+          { name: '环保冷媒 R32/R410A 充注检测', extraMY: 40, extraSG: 30 }
+        ]
+      },
+      portfolio: ['风轮清洗前后惊人黑垢对比', '出风温差从21度恢复到14度'],
+      mode: '工程师上门'
     }
   ],
 
-  // 5. 认证入驻实体商家 (商家端审核通过后自动同步至此)
+  // 实体入驻商户数据库 (支持商家端动态新增并保存至 localStorage)
   merchants: [
     {
-      id: 'shop_01',
-      name: '绿意自然·养生美学生活馆',
-      category: '实体SPA会馆',
+      id: 'm_store_01',
+      name: '绿意美学·经络芳疗生活馆',
+      category: '理疗养生',
       rating: '4.98',
-      reviewsCount: '890+',
-      address: '亚庇市中心滨海大道 88 号',
-      services: ['中式穴位推拿', '芳香精油调理', '草本足浴'],
-      verified: true
+      reviewsCount: 890,
+      address: '沙巴·亚庇滨海大道 88 号 (靠近大茄来)',
+      openTime: '10:00 - 23:00',
+      amenities: ['独立单双人包厢', '独立卫浴', '免费花茶点心', '专属车位'],
+      verifiedCode: 'SSM-202401889K',
+      services: ['肩颈解结推拿', '督脉全身推拿', '芳香精油舒缓'],
+      syncedAt: '2026-09-05'
     },
     {
-      id: 'shop_02',
-      name: '萌宠物语·专业宠物沙龙',
-      category: '专业宠物沙龙',
+      id: 'm_store_02',
+      name: '萌宠物语·名猫名犬养护沙龙',
+      category: '宠物美容',
       rating: '4.95',
-      reviewsCount: '620+',
-      address: '加雅街商业区 12 号铺',
-      services: ['赛级剪毛修型', '草本微气泡药浴', '猫咪深层洗护'],
-      verified: true
+      reviewsCount: 620,
+      address: '加雅街商业区 12 号铺 (Gaya Street)',
+      openTime: '09:30 - 20:30',
+      amenities: ['低噪恒温烘干房', '医用紫外灭菌', '全景透明美容间'],
+      verifiedCode: 'SSM-202309812M',
+      services: ['全犬猫造型精修', '纳米草本药浴', '猫咪低应激洗护'],
+      syncedAt: '2026-09-05'
     }
   ],
 
-  // 6. 来自真实客户的真实反馈与推荐库
+  // 真实履约客户真实反馈评价库 (四维打分与实拍心得)
   reviews: [
     {
-      customerName: '陈女士 (亚庇居民)',
-      artisanName: 'Lisa (高级美容美睫师)',
-      serviceName: '日韩系轻奢美睫',
-      rating: 5,
-      comment: '手艺真的很轻柔！之前在别的店接睫毛容易扎眼睛，Lisa 师傅手法很专业，嫁接得特别自然，维持了一个多月都没掉，真心推荐！',
-      date: '昨天 15:30'
+      customer: '陈雅文 (亚庇滨海区)',
+      artisan: '林师姐 (高级经络调理师)',
+      service: '办公室肩颈深层筋膜解结',
+      scores: { skill: 5, time: 5, hygiene: 5, attitude: 5 },
+      content: '手劲非常透！常年用电脑右肩胛骨缝酸痛到头痛，林师姐带着一次性垫单和热毛巾上门，找穴位极其精准，按完右转脖子完全没有弹响声了。',
+      tags: ['手法透穴', '自带无菌垫单', '无推销'],
+      date: '昨天 15:40'
     },
     {
-      customerName: 'Mr. Kevin (家庭用户)',
-      artisanName: '黄师傅 (持证水电工)',
-      serviceName: '水管急性漏水抢修',
-      rating: 5,
-      comment: '晚上10点厨房水管爆开，在平台提交不到5分钟黄师傅就接单联系我了，20分钟带齐工具上门截断修好，明码实价没有任何乱收费，救了大急！',
-      date: '前天 22:45'
+      customer: '黄先生 (达迈住宅区)',
+      artisan: '陈工 (高级水电急修工程师)',
+      service: '墙体暗管爆裂急性抢修',
+      scores: { skill: 5, time: 5, hygiene: 5, attitude: 5 },
+      content: '半夜厨房地板突然涌水出来，慌得不行。在 Vgo 提交工单 3 分钟陈工就来电，22分钟带齐测漏仪器敲门，切管热熔行云流水，收费清单明明白白。',
+      tags: ['20分钟速达', '专业仪器测漏', '明码实价'],
+      date: '前天 23:15'
     },
     {
-      customerName: 'Sarah (猫咪家长)',
-      artisanName: '阿明师傅 (宠物美容师)',
-      serviceName: '猫咪上门洗护精修',
-      rating: 5,
-      comment: '我家布偶猫非常胆小怕出门，阿明师傅自带全套消毒装备上门洗护，安抚手法特别温柔，毛发吹得非常蓬松，猫咪完全没有应激反应，太省心了。',
+      customer: 'Sarah Tan (市中心公寓)',
+      artisan: '阿明 (宠物高级造型师)',
+      service: '全犬猫专业精修剪毛',
+      scores: { skill: 5, time: 5, hygiene: 5, attitude: 5 },
+      content: '家里 4 岁比熊胆子很小，阿明师傅安抚手法很专业，剪指甲全程没叫一声。剪出来的熊头圆滚滚超级可爱，毛修得很细腻，满分好评！',
+      tags: ['手法温柔', '造型圆润', '猫狗不应激'],
       date: '3天前'
     }
   ]
 };
+
+// 从本地持久化存储动态同步商户
+try {
+  const localStores = JSON.parse(localStorage.getItem('vgo_custom_merchants') || '[]');
+  if (Array.isArray(localStores) && localStores.length > 0) {
+    localStores.forEach(st => {
+      if (!window.vgoCatalog.merchants.some(m => m.id === st.id)) {
+        window.vgoCatalog.merchants.unshift(st);
+      }
+    });
+  }
+} catch (e) {
+  console.warn('读取本地商户同步缓存异常:', e);
+}
