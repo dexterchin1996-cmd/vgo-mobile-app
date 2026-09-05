@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vgo Super-App | 随叫随到专业上门平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .hero-gradient { background: linear-gradient(180deg, #0b1329 0%, #1e293b 65%, #f8fafc 100%); }
+    .sheet-enter { transform: translateY(100%); transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
+    .sheet-enter-active { transform: translateY(0); }
+    .backdrop-fade { opacity: 0; transition: opacity 0.25s ease-out; }
+    .backdrop-fade-active { opacity: 1; }
+  </style>
+</head>
+<body class="flex justify-center min-h-screen">
+
+  <div class="w-full max-w-md bg-[#f8fafc] min-h-screen shadow-2xl flex flex-col relative pb-24 overflow-x-hidden">
+    
+    <!-- 顶部状态栏与角色快速切换 -->
+    <div class="hero-gradient pt-4 px-4 pb-6 text-white">
+      <div class="flex justify-between items-center mb-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-amber-400 flex items-center justify-center shadow-lg">
+            <span class="text-slate-950 font-black text-base italic">V</span>
+          </div>
+          <span class="font-bold text-sm">Vgo Super-App</span>
+        </div>
+
+        <!-- 语言与设置按钮 -->
+        <div class="flex items-center space-x-2">
+          <div class="flex bg-slate-800/90 rounded-full p-0.5 border border-slate-700 text-[10px] font-bold">
+            <button onclick="setLang('zh')" id="lang-zh" class="px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950">中</button>
+            <button onclick="setLang('en')" id="lang-en" class="px-2 py-0.5 rounded-full text-slate-300">EN</button>
+            <button onclick="setLang('ms')" id="lang-ms" class="px-2 py-0.5 rounded-full text-slate-300">BM</button>
+          </div>
+          <button onclick="openModal('modal-settings')" class="w-7 h-7 rounded-full bg-slate-800/80 border border-slate-700 flex items-center justify-center text-xs text-slate-300">
+            <i class="fa-solid fa-gear"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 三端角色快速切换 Tab -->
+      <div class="grid grid-cols-3 bg-slate-800/80 rounded-xl p-1 text-xs font-bold text-center border border-slate-700/60 mt-3">
+        <button id="tab-customer" onclick="switchRole('customer')" class="py-2 rounded-lg bg-emerald-500 text-slate-950 shadow">📱 顾客端</button>
+        <button id="tab-tech" onclick="switchRole('tech')" class="py-2 rounded-lg text-slate-300 hover:text-white">👷‍♂️ 师傅端</button>
+        <button id="tab-merchant" onclick="switchRole('merchant')" class="py-2 rounded-lg text-slate-300 hover:text-white">🏪 商家后台</button>
+      </div>
+    </div>
+
+    <!-- 动态内容容器 -->
+    <main class="p-4 flex-1 space-y-4">
+
+      <!-- ================= 1. 顾客端视图 ================= -->
+      <div id="view-customer" class="space-y-4">
+        <!-- 资产托管卡片 -->
+        <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-lg space-y-2">
+          <div class="flex justify-between items-center text-xs text-slate-300">
+            <span class="flex items-center gap-1"><i class="fa-solid fa-shield-halved text-emerald-400"></i> Escrow 托管账户 (隐私脱敏保护)</span>
+            <span class="text-amber-400 font-bold">VIP 85折</span>
+          </div>
+          <div class="flex justify-between items-baseline">
+            <span class="text-2xl font-black">RM 280.00</span>
+            <span class="text-xs text-emerald-400 font-bold">账户昵称: Jason</span>
+          </div>
+        </div>
+
+        <!-- 双核业务入口 -->
+        <div class="grid grid-cols-2 gap-3">
+          <div onclick="alert('进入翡翠青：理疗养生预约')" class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-2xl cursor-pointer active:scale-95 transition space-y-1">
+            <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-base">
+              <i class="fa-solid fa-spa"></i>
+            </div>
+            <h3 class="font-bold text-slate-900 text-xs">翡翠青 · 养生理疗</h3>
+            <p class="text-[10px] text-slate-500">一口价 · 酒店外派</p>
+          </div>
+
+          <div onclick="alert('进入活力橙：突发维修竞价')" class="bg-orange-50 border border-orange-200 p-3.5 rounded-2xl cursor-pointer active:scale-95 transition space-y-1">
+            <div class="w-9 h-9 rounded-xl bg-orange-600 text-white flex items-center justify-center text-base">
+              <i class="fa-solid fa-wrench"></i>
+            </div>
+            <h3 class="font-bold text-slate-900 text-xs">活力橙 · 突发维修</h3>
+            <p class="text-[10px] text-slate-500">师傅反向竞价抢单</p>
+          </div>
+        </div>
+
+        <!-- 常用服务列表 -->
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
+          <h3 class="font-bold text-xs text-slate-800"><i class="fa-solid fa-compass text-emerald-500 mr-1"></i> 快捷上门服务</h3>
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border">
+              <span>60分钟泰式精油经络推拿</span>
+              <span class="text-emerald-600 font-bold">RM 120.00</span>
+            </div>
+            <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border">
+              <span>暗管水管暗漏抢修</span>
+              <span class="text-orange-600 font-bold">自由竞价</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 2. 师傅端视图 ================= -->
+      <div id="view-tech" class="space-y-4 hidden">
+        <div class="bg-teal-900 text-white p-4 rounded-2xl space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-sm">👷‍♂️ 师傅工作台 (接单大厅)</span>
+            <span class="bg-emerald-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">KYC 已认证</span>
+          </div>
+          <p class="text-xs text-teal-200">当前网格：Kota Kinabalu 5KM 范围内</p>
+        </div>
+
+        <div class="space-y-2">
+          <h3 class="text-xs font-bold text-slate-700">⚡ 实时抢单与派单池</h3>
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold text-amber-600">🚪 酒店客房外派单 (Hyatt Room 808)</span>
+              <span class="text-xs font-black text-slate-900">RM 120.00</span>
+            </div>
+            <p class="text-[11px] text-slate-500">客户: Jason[span_5](start_span)[span_5](end_span) (隐私保护中 · 虚拟号联络)</p>
+            <button onclick="alert('抢单成功！已为您锁定托管资金')" class="w-full bg-teal-700 text-white py-2.5 rounded-xl font-bold text-xs">
+              立即抢单并前往
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 3. 商家后台视图 ================= -->
+      <div id="view-merchant" class="space-y-4 hidden">
+        <div class="bg-slate-800 text-white p-4 rounded-2xl space-y-2">
+          <h3 class="font-bold text-sm">🏪 独立商户与货架后台</h3>
+          <p class="text-xs text-slate-400">自主管理店铺服务、员工花名册与核销台</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
+          <h3 class="font-bold text-xs text-slate-800">🔑 6 位防伪核销台</h3>
+          <input id="verify-code-input" type="text" placeholder="输入 6 位核销码释放托管金" class="w-full p-2.5 border rounded-xl text-center font-mono font-bold text-lg tracking-widest outline-none bg-slate-50">
+          <button onclick="alert('核销成功！托管资金已自动分账清算。')" class="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold text-xs">
+            确认核销并清算
+          </button>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ================= 弹窗：全功能系统设置中心 ================= -->
+    <div id="modal-backdrop" onclick="closeAllModals()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden backdrop-fade"></div>
+
+    <div id="modal-settings" class="fixed inset-x-0 bottom-0 max-w-md mx-auto bg-white rounded-t-3xl p-5 z-50 hidden sheet-enter space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-black text-slate-900 text-sm flex items-center gap-2">
+          <i class="fa-solid fa-gear text-emerald-600"></i> 系统设置与帮助中心
+        </h3>
+        <button onclick="closeAllModals()" class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-xs">✕</button>
+      </div>
+
+      <!-- 设置选项列表 -->
+      <div class="space-y-3 text-xs">
+        <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center cursor-pointer" onclick="alert('当前语言: 中文 (简体)')">
+          <span class="font-bold text-slate-700 flex items-center gap-2"><i class="fa-solid fa-language text-emerald-600"></i> 切换语言 (Language)</span>
+          <span class="text-slate-400">简体中文 ></span>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center cursor-pointer" onclick="alert('【标准隐私机制说明】：\n平台严格对用户个人隐私保密。公众界面及互动看板中仅展示通用称呼或代号（如 Jason），真实手机号及敏感字段严格在后端加密隔离，仅在履约时通过虚拟中间号连线。')">
+          <span class="font-bold text-slate-700 flex items-center gap-2"><i class="fa-solid fa-user-shield text-emerald-600"></i> 账号与隐私脱敏说明</span>
+          <span class="text-slate-400">查看详情 ></span>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center cursor-pointer" onclick="alert('【法律合规免责协议】：\n1. 养生理疗前需确认无传染病及心脏病禁忌症。\n2. 突发维修涉及房屋暗管责任划分遵循平台仲裁规则。')">
+          <span class="font-bold text-slate-700 flex items-center gap-2"><i class="fa-solid fa-file-contract text-emerald-600"></i> 服务条款与免责声明</span>
+          <span class="text-slate-400">查看协议 ></span>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center cursor-pointer" onclick="alert('Vgo 24小时客服中心与仲裁热线已开启：+60 88-888999')">
+          <span class="font-bold text-slate-700 flex items-center gap-2"><i class="fa-solid fa-headset text-emerald-600"></i> 24 小时客服与 SOS 仲裁</span>
+          <span class="text-slate-400">一键联络 ></span>
+        </div>
+      </div>
+
+      <button onclick="closeAllModals()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold text-xs">
+        保存并关闭
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    function switchRole(role) {
+      ['customer', 'tech', 'merchant'].forEach(r => {
+        document.getElementById(`view-${r}`).classList.add('hidden');
+        document.getElementById(`tab-${r}`).className = "py-2 rounded-lg text-slate-300 hover:text-white";
+      });
+      document.getElementById(`view-${role}`).classList.remove('hidden');
+      document.getElementById(`tab-${role}`).className = "py-2 rounded-lg bg-emerald-500 text-slate-950 shadow font-bold";
+    }
+
+    function openModal(id) {
+      document.getElementById('modal-backdrop').classList.remove('hidden');
+      setTimeout(() => document.getElementById('modal-backdrop').classList.add('backdrop-fade-active'), 10);
+      const m = document.getElementById(id);
+      m.classList.remove('hidden');
+      setTimeout(() => m.classList.add('sheet-enter-active'), 10);
+    }
+
+    function closeAllModals() {
+      const m = document.getElementById('modal-settings');
+      m.classList.remove('sheet-enter-active');
+      setTimeout(() => m.classList.add('hidden'), 250);
+      const bd = document.getElementById('modal-backdrop');
+      bd.classList.remove('backdrop-fade-active');
+      setTimeout(() => bd.classList.add('hidden'), 250);
+    }
+
+    function setLang(lang) {
+      ['zh', 'en', 'ms'].forEach(l => {
+        const btn = document.getElementById(`lang-${l}`);
+        if (l === lang) {
+          btn.className = "px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-bold";
+        } else {
+          btn.className = "px-2 py-0.5 rounded-full text-slate-300 font-bold";
+        }
+      });
+      alert(`已切换语言: ${lang.toUpperCase()}`);
+    }
+  </script>
+</body>
+</html>

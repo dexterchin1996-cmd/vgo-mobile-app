@@ -1,0 +1,22 @@
+{
+  "name": "Vgo 生活服务平台",
+  "short_name": "Vgo KK",
+  "description": "Kota Kinabalu 亚庇专业到家理疗与突发快修 O2O 平台",
+  "start_url": "/VgoMainUI.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=192&auto=format&fit=crop&q=80",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=512&auto=format&fit=crop&q=80",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}

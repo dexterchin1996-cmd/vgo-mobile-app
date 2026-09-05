@@ -1,0 +1,5 @@
+package com.vgo.lifestyle;
+
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {}

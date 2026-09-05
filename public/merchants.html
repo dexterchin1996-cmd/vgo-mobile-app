@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vgo | 附近商户与上门服务大厅</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-20">
+  
+  <div class="max-w-md mx-auto p-4 space-y-4">
+    <!-- 顶部标题栏 -->
+    <div class="flex justify-between items-center bg-slate-800 p-4 rounded-2xl border border-slate-700">
+      <div>
+        <h1 class="text-lg font-black text-emerald-400">Vgo 商户与服务大厅</h1>
+        <p class="text-xs text-slate-400">发现周边独立店铺 · 严格隐私保护</p>
+      </div>
+      <a href="index.html" class="bg-slate-700 text-xs px-3 py-1.5 rounded-xl font-bold hover:bg-slate-600">返回主页</a>
+    </div>
+
+    <!-- 附近商户列表 -->
+    <div class="space-y-3">
+      <h2 class="text-sm font-bold text-slate-300 flex items-center gap-1.5">
+        <i class="fa-solid fa-store text-emerald-400"></i> 附近的认证商户与独立店铺
+      </h2>
+      <div id="merchant-list" class="space-y-3">
+        <!-- 动态加载 -->
+        <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 animate-pulse">
+          <div class="h-4 bg-slate-700 rounded w-1/2 mb-2"></div>
+          <div class="h-3 bg-slate-700 rounded w-3/4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadNearbyMerchants() {
+      try {
+        const res = await fetch('http://localhost:3000/api/v1/merchants/nearby?lat=5.9804&lng=116.0735');
+        const json = await res.json();
+        const container = document.getElementById('merchant-list');
+        
+        if (json.success && json.data.length > 0) {
+          container.innerHTML = json.data.map(m => `
+            <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3 shadow-md">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-bold text-white text-base">${m.shop_name}</h3>
+                  <p class="text-xs text-slate-400"><i class="fa-solid fa-location-dot text-emerald-400 mr-1"></i>${m.address}</p>
+                </div>
+                <span class="bg-emerald-950 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  ${m.distance_km} km
+                </span>
+              </div>
+              <button onclick="loadStoreServices(${m.id}, '${m.shop_name}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black py-2 rounded-xl text-xs transition">
+                查看店内服务与项目
+              </button>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">暂无附近商户</p>';
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadStoreServices(merchantId, shopName) {
+      alert(`正在加载 [${shopName}] 的独立服务货架...`);
+    }
+
+    loadNearbyMerchants();
+  </script>
+</body>
+</html>

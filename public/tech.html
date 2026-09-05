@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script src="/config.js"></script>
+  <script src="/app-native-bridge.js"></script>
+  <script src="/push-manager.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vgo 师傅端 | 抢单与履约大厅</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --vgo-teal: #00C897;
+      --vgo-amber: #FF9F00;
+      --vgo-dark: #0F172A;
+      --vgo-bg: #F8FAFC;
+    }
+    body { background-color: var(--vgo-bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  </style>
+
+  <!-- Native App Optimization -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Vgo">
+  <meta name="format-detection" content="telephone=no">
+  <style>
+    /* 适配 iPhone 灵动岛 / 底部横条 Safe Area 与原生弹性手势 */
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      overscroll-behavior-y: contain;
+    }
+    input, textarea { user-select: auto; }
+  </style>
+
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col items-center">
+  <div class="w-full max-w-md bg-white min-h-screen shadow-2xl flex flex-col relative overflow-hidden">
+    
+    <!-- 顶栏 -->
+    <header class="bg-slate-900 text-white p-4 shadow-lg flex justify-between items-center z-10">
+      <div>
+        <div class="text-xl font-black text-amber-400">Vgo 师傅端</div>
+        <div class="text-[10px] text-slate-400 font-medium">👷‍♂️ 认证技术人员工作台 (工号 #88)</div>
+      </div>
+      <div class="bg-amber-500/20 px-3 py-1 rounded-full border border-amber-500/40 text-amber-400 text-xs font-bold">
+        🟢 听单中
+      </div>
+    </header>
+
+    <!-- 端导航 -->
+    <div class="grid grid-cols-2 bg-slate-800 text-xs font-bold text-center border-t border-slate-700 z-10 shadow-inner">
+      <a href="index.html" class="py-3 text-slate-400 hover:text-white flex items-center justify-center gap-1">📱 顾客端主应用</a>
+      <a href="tech.html" class="py-3 text-white bg-slate-700 border-b-2 border-amber-400 flex items-center justify-center gap-1">👷‍♂️ 师傅端工作台</a>
+    </div>
+
+    <!-- 主工作区 -->
+    <main class="p-4 flex-1 space-y-4 overflow-y-auto pb-12">
+      
+      <!-- 钱包卡片 -->
+      <div class="bg-gradient-to-r from-amber-500 to-amber-600 text-white p-4 rounded-2xl shadow-md space-y-2">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="opacity-90 text-[10px]">可提现收益余额 (80% 佣金分成)</p>
+            <p class="text-xl font-black mt-0.5">RM 480.00</p>
+          </div>
+          <button onclick="loadTechDemands()" class="bg-white text-amber-700 px-3 py-2 rounded-xl font-bold shadow transition-all text-xs">
+            🔄 刷新大厅
+          </button>
+        </div>
+      </div>
+
+      <!-- 抢单大厅列表 -->
+      <div id="tech-demands-list" class="space-y-3">
+        <div class="text-center text-slate-400 py-10 text-xs">正在检索 5km 内的急修求助需求...</div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    async function loadTechDemands() {
+      try {
+        const res = await fetch('/api/repair/demands');
+        const data = await res.json();
+        const container = document.getElementById('tech-demands-list');
+        if(data.success && data.data.length > 0) {
+          container.innerHTML = data.data.map(d => `
+            <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm space-y-2 border-l-4 border-l-amber-500 text-xs">
+              <div class="flex justify-between font-bold items-center">
+                <span class="text-slate-900">${d.title}</span>
+                <span class="text-amber-600 font-extrabold">预算: RM ${d.budget_estimate}</span>
+              </div>
+              <p class="text-slate-500 text-[11px]">📍 ${d.address}</p>
+              
+              <div class="bg-slate-50 p-2.5 rounded-xl border space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                  <input id="tech-price-${d.id}" type="number" placeholder="您的报价 (RM)" class="p-2 border rounded-xl bg-white text-xs">
+                  <input id="tech-time-${d.id}" type="number" value="15" placeholder="到达分钟" class="p-2 border rounded-xl bg-white text-xs">
+                </div>
+                <input id="tech-notes-${d.id}" type="text" placeholder="方案备注 (如: 带专业工具)" class="w-full p-2 border rounded-xl bg-white text-xs">
+                <button onclick="submitTechBid(${d.id})" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-xl font-bold transition-all">
+                  提交反向报价抢单
+                </button>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = '<div class="text-center text-slate-400 py-10 text-xs">当前暂无开放的急修需求，请保持在线...</div>';
+        }
+      } catch(e) {}
+    }
+
+    async function submitTechBid(postId) {
+      const price = document.getElementById(`tech-price-${postId}`).value;
+      const time = document.getElementById(`tech-time-${postId}`).value;
+      const notes = document.getElementById(`tech-notes-${postId}`).value;
+      if(!price) return alert('请输入报价金额');
+
+      try {
+        const res = await fetch('/api/repair/bids', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ post_id: postId, technician_id: 88, quoted_price: price, estimated_arrival_minutes: time || 15, notes: notes || '专业快修，随叫随到' })
+        });
+        const data = await res.json();
+        if(data.success) alert('🎉 报价发送成功！客户已实时收到您的卡片。');
+      } catch(e) { alert('提交失败'); }
+    }
+
+    loadTechDemands();
+  </script>
+</body>
+</html>
