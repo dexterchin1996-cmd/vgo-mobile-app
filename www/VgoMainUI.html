@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Vgo - 城市综合技术服务与突发急修平台</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #0284C7;
+      --primary-dark: #0369A1;
+      --primary-light: #E0F2FE;
+      --urgent-color: #EA580C;
+      --urgent-light: #FFEDD5;
+      --success-color: #10B981;
+      --bg-surface: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text-main: #0F172A;
+      --text-sub: #475569;
+      --text-muted: #94A3B8;
+      --border-line: #E2E8F0;
+      --safe-bottom: env(safe-area-inset-bottom, 16px);
+    }
+    * { margin:0; padding:0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-surface);
+      color: var(--text-main);
+      padding-bottom: calc(72px + var(--safe-bottom));
+      user-select: none;
+    }
+
+    /* 顶部导航与国家市场切换 */
+    .app-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      padding: 12px 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border-line);
+    }
+    .brand-cluster { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--urgent-color) 45%, var(--primary-color) 45%);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 22px; box-shadow: 0 4px 12px rgba(2,132,199,0.25);
+    }
+    .brand-title h1 { font-size: 17px; font-weight: 900; line-height: 1.2; }
+    .brand-loc { font-size: 11px; color: var(--text-sub); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+
+    .market-pill-group {
+      display: flex; background: #EEF2F6; padding: 3px; border-radius: 20px; border: 1px solid var(--border-line);
+    }
+    .market-pill {
+      border: none; background: transparent; padding: 6px 12px; border-radius: 16px;
+      font-size: 11.5px; font-weight: 700; color: var(--text-sub); cursor: pointer; transition: all 0.2s;
+    }
+    .market-pill.active { background: #FFFFFF; color: var(--text-main); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+
+    /* 24H 应急抢修专属触发区 */
+    .urgent-dispatch-hero {
+      margin: 14px 16px;
+      background: linear-gradient(135deg, #FFF7ED, #FFEDD5);
+      border: 1.5px solid #FDBA74;
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 4px 14px rgba(234, 88, 12, 0.08);
+    }
+    .urgent-info { display: flex; align-items: center; gap: 12px; }
+    .pulse-urgent-icon {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: var(--urgent-color); color: #fff;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+      animation: pulse-ring 2s infinite;
+    }
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.6); }
+      70% { box-shadow: 0 0 0 12px rgba(234, 88, 12, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); }
+    }
+    .urgent-headline { font-size: 14px; font-weight: 900; color: #9A3412; }
+    .urgent-subline { font-size: 11px; color: #C2410C; margin-top: 2px; }
+    .urgent-cta-btn {
+      background: var(--urgent-color); color: #fff; border: none;
+      padding: 9px 15px; border-radius: 22px; font-size: 12px; font-weight: 800; cursor: pointer;
+    }
+
+    /* 业务导航 Segments */
+    .category-segments {
+      display: flex; margin: 0 16px 14px; gap: 10px;
+    }
+    .segment-tab {
+      flex: 1; padding: 12px; border-radius: 14px; background: #fff;
+      border: 2px solid transparent; display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02); cursor: pointer; transition: all 0.2s;
+    }
+    .segment-tab.active-urgent { border-color: var(--urgent-color); background: #FFF7ED; }
+    .segment-tab.active-standard { border-color: var(--primary-color); background: #F0F9FF; }
+    .segment-icon-box {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+
+    /* 服务卡片网格系统 */
+    .section-bar {
+      margin: 16px 16px 10px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .section-title { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+    .tax-badge {
+      font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 8px;
+      background: #E2E8F0; color: var(--text-sub);
+    }
+    .service-grid-2col {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px;
+    }
+    .service-card {
+      background: #fff; border-radius: 16px; border: 1px solid var(--border-line);
+      overflow: hidden; display: flex; flex-direction: column; cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .service-card:active { transform: scale(0.98); }
+    .card-visual {
+      height: 110px; position: relative; display: flex; align-items: center; justify-content: center;
+      font-size: 38px;
+    }
+    .tier-badge {
+      position: absolute; top: 8px; left: 8px; padding: 3px 8px; border-radius: 6px;
+      font-size: 10px; font-weight: 800; color: #fff;
+    }
+    .card-content { padding: 12px; display: flex; flex-direction: column; flex: 1; }
+    .card-title { font-size: 13.5px; font-weight: 800; line-height: 1.35; }
+    .card-spec { font-size: 11px; color: var(--text-sub); margin: 6px 0 10px; display: flex; gap: 8px; }
+    .card-action-row {
+      margin-top: auto; display: flex; align-items: baseline; justify-content: space-between;
+    }
+    .price-num { font-size: 16px; font-weight: 900; color: #DC2626; }
+    .open-btn {
+      width: 28px; height: 28px; border-radius: 50%; border: none;
+      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px;
+    }
+
+    /* 认证技术专家轮播 */
+    .experts-slider {
+      display: flex; gap: 12px; overflow-x: auto; padding: 0 16px 8px; scrollbar-width: none;
+    }
+    .experts-slider::-webkit-scrollbar { display: none; }
+    .expert-card {
+      min-width: 150px; background: #fff; border: 1px solid var(--border-line);
+      border-radius: 14px; padding: 14px 10px; text-align: center; cursor: pointer;
+    }
+    .expert-avatar {
+      width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .expert-name { font-size: 13px; font-weight: 800; }
+    .expert-tag { font-size: 10.5px; color: var(--text-sub); margin-top: 2px; }
+    .expert-star { font-size: 11px; color: #F59E0B; margin-top: 4px; font-weight: 700; }
+
+    /* 底部专属导航栏 */
+    .app-bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: calc(56px + var(--safe-bottom));
+      padding-bottom: var(--safe-bottom);
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(16px);
+      display: flex; border-top: 1px solid var(--border-line); z-index: 120;
+    }
+    .nav-tab {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; gap: 3px;
+    }
+    .nav-tab i { font-size: 18px; }
+    .nav-tab.active { color: var(--primary-color); }
+
+    /* 浮动调度连接 */
+    .fab-dispatch {
+      position: fixed; right: 16px; bottom: calc(70px + var(--safe-bottom));
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #25D366; color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 26px; box-shadow: 0 4px 18px rgba(37,211,102,0.4); z-index: 110; cursor: pointer;
+    }
+
+    /* 商业级弹窗与交互抽屉 */
+    .drawer-scrim {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 200;
+      display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px);
+    }
+    .drawer-surface {
+      width: 100%; max-width: 520px; background: #fff; border-radius: 24px 24px 0 0;
+      padding: 20px 20px calc(20px + var(--safe-bottom)); max-height: 88vh; overflow-y: auto;
+      animation: slideUp 0.25s cubic-bezier(0, 0, 0.2, 1);
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .drawer-title { font-size: 18px; font-weight: 900; }
+    .drawer-close { font-size: 22px; color: var(--text-muted); cursor: pointer; border: none; background: none; }
+
+    .form-row { margin-bottom: 14px; }
+    .form-label { font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; display: block; }
+    .form-control {
+      width: 100%; padding: 11px 14px; border: 1.5px solid var(--border-line); border-radius: 12px;
+      font-size: 14px; outline: none; background: #F8FAFC; transition: border-color 0.2s;
+    }
+    .form-control:focus { border-color: var(--primary-color); background: #fff; }
+    .btn-submit-order {
+      width: 100%; padding: 15px; border: none; border-radius: 14px;
+      color: #fff; font-weight: 900; font-size: 15px; cursor: pointer; margin-top: 12px;
+    }
+
+    .contact-card-btn {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; border-radius: 14px; margin-bottom: 10px; background: #F8FAFC;
+      border: 1px solid var(--border-line); text-decoration: none; color: inherit; cursor: pointer;
+    }
+    .toast-pill {
+      position: fixed; top: 75px; left: 50%; transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.92); color: #fff; padding: 9px 20px;
+      border-radius: 24px; font-size: 12px; font-weight: 700; z-index: 300; display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toast" class="toast-pill"></div>
+
+  <!-- 头部控制栏 -->
+  <header class="app-header">
+    <div class="brand-cluster">
+      <div class="brand-mark">V</div>
+      <div class="brand-title">
+        <h1>Vgo 平台</h1>
+        <div class="brand-loc"><i class="fas fa-location-dot" style="color: var(--primary-color);"></i> <span id="locLabel">沙巴·亚庇 (Kota Kinabalu)</span></div>
+      </div>
+    </div>
+    <div class="market-pill-group">
+      <button id="pillMY" class="market-pill active" onclick="switchRegion('MY')">🇲🇾 马来西亚</button>
+      <button id="pillSG" class="market-pill" onclick="switchRegion('SG')">🇸🇬 新加坡</button>
+    </div>
+  </header>
+
+  <!-- 紧急抢修入口 -->
+  <div class="urgent-dispatch-hero">
+    <div class="urgent-info">
+      <div class="pulse-urgent-icon"><i class="fas fa-wrench"></i></div>
+      <div>
+        <div class="urgent-headline">24H 突发急修调度通道</div>
+        <div class="urgent-subline">爆管 / 跳闸 / 门锁卡死 · 智能调度系统</div>
+      </div>
+    </div>
+    <button class="urgent-cta-btn" onclick="openUrgentModal()">一键报修</button>
+  </div>
+
+  <!-- 两大业务大类选项 -->
+  <div class="category-segments">
+    <div id="segUrgent" class="segment-tab active-urgent" onclick="selectSegment('urgent')">
+      <div class="segment-icon-box" style="background: var(--urgent-light); color: var(--urgent-color);"><i class="fas fa-bolt"></i></div>
+      <div>
+        <div style="font-size: 13.5px; font-weight: 900; color: #9A3412;">应急快修工程</div>
+        <div style="font-size: 11px; color: var(--text-sub);">全天候即时上门响应</div>
+      </div>
+    </div>
+    <div id="segStandard" class="segment-tab" onclick="selectSegment('standard')">
+      <div class="segment-icon-box" style="background: var(--primary-light); color: var(--primary-color);"><i class="fas fa-screwdriver-wrench"></i></div>
+      <div>
+        <div style="font-size: 13.5px; font-weight: 900; color: var(--primary-dark);">维保与安装工程</div>
+        <div style="font-size: 11px; color: var(--text-sub);">标准工时 / 预约施工</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 服务网格列表 -->
+  <div class="section-bar">
+    <span class="section-title" id="gridTitle"><i class="fas fa-bolt" style="color: var(--urgent-color);"></i> 应急快修项目</span>
+    <span class="tax-badge" id="taxIndicator">已含 8% SST 税费</span>
+  </div>
+
+  <div class="service-grid-2col" id="serviceGrid">
+    <!-- JS 动态渲染 -->
+  </div>
+
+  <!-- 平台认证技术人员 -->
+  <div class="section-bar" style="margin-top: 24px;">
+    <span class="section-title"><i class="fas fa-user-shield" style="color: var(--primary-color);"></i> 平台实名认证技术工程师</span>
+    <span class="tax-badge">资质审核 · 平台承保</span>
+  </div>
+
+  <div class="experts-slider">
+    <div class="expert-card" onclick="bookDirectTech('陈工', '高级水电急修工程师', '4.98', '1,420')">
+      <div class="expert-avatar" style="background: #F1F5F9;"><i class="fas fa-user-gear"></i></div>
+      <div class="expert-name">陈工</div>
+      <div class="expert-tag">资深水电急修师</div>
+      <div class="expert-star"><i class="fas fa-star"></i> 4.98 (1.4k)</div>
+    </div>
+    <div class="expert-card" onclick="bookDirectTech('黄工', '暖通空调与制冷技师', '4.95', '980')">
+      <div class="expert-avatar" style="background: var(--primary-light); color: var(--primary-color);"><i class="fas fa-snowflake"></i></div>
+      <div class="expert-name">黄工</div>
+      <div class="expert-tag">制冷与暖通专家</div>
+      <div class="expert-star"><i class="fas fa-star"></i> 4.95 (980)</div>
+    </div>
+    <div class="expert-card" onclick="bookDirectTech('林工', '智能门锁与安防技师', '5.00', '760')">
+      <div class="expert-avatar" style="background: #F1F5F9;"><i class="fas fa-key"></i></div>
+      <div class="expert-name">林工</div>
+      <div class="expert-tag">锁具与智能安防</div>
+      <div class="expert-star"><i class="fas fa-star"></i> 5.00 (760)</div>
+    </div>
+    <div class="expert-card" onclick="bookDirectTech('Azman 工长', '高压管网与结构维保', '4.96', '1,210')">
+      <div class="expert-avatar" style="background: var(--primary-light); color: var(--primary-color);"><i class="fas fa-hard-hat"></i></div>
+      <div class="expert-name">Azman 工长</div>
+      <div class="expert-tag">管网疏通/结构维保</div>
+      <div class="expert-star"><i class="fas fa-star"></i> 4.96 (1.2k)</div>
+    </div>
+  </div>
+
+  <!-- WhatsApp 快速客服浮标 -->
+  <div class="fab-dispatch" onclick="openContactCenter()" title="联络调度中枢">
+    <i class="fab fa-whatsapp"></i>
+  </div>
+
+  <!-- 底部固定导航栏 -->
+  <nav class="app-bottom-nav">
+    <div class="nav-tab active" onclick="switchBottomTab(this, 'home')">
+      <i class="fas fa-compass"></i>
+      <span>服务大厅</span>
+    </div>
+    <div class="nav-tab" onclick="openUrgentModal()">
+      <i class="fas fa-bolt" style="color: var(--urgent-color);"></i>
+      <span>快速呼叫</span>
+    </div>
+    <div class="nav-tab" onclick="openContactCenter()">
+      <i class="fas fa-headset"></i>
+      <span>调度客服</span>
+    </div>
+    <div class="nav-tab" onclick="openAccountCenter()">
+      <i class="fas fa-user-circle"></i>
+      <span>我的账户</span>
+    </div>
+  </nav>
+
+  <!-- 下单预约抽屉 -->
+  <div id="bookingDrawer" class="drawer-scrim">
+    <div class="drawer-surface">
+      <div class="drawer-header">
+        <h3 class="drawer-title" id="drawerTitle">派发工单</h3>
+        <button class="drawer-close" onclick="closeDrawer('bookingDrawer')">&times;</button>
+      </div>
+      <div style="background: #F1F5F9; padding: 12px; border-radius: 12px; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 14px;">
+          <span id="orderItemName">服务项目</span>
+          <span id="orderItemPrice" style="color: #DC2626;">RM 0.00</span>
+        </div>
+        <div id="orderItemSpec" style="font-size: 11px; color: var(--text-sub); margin-top: 4px;">服务标准</div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">联络人姓名与电话</label>
+        <input type="text" id="inContact" class="form-control" placeholder="例如：林先生 0128172166">
+      </div>
+      <div class="form-row">
+        <label class="form-label">施工/故障详细地址</label>
+        <input type="text" id="inAddress" class="form-control" placeholder="大厦/住宅单元号，或现场详细描述">
+      </div>
+      <div class="form-row">
+        <label class="form-label">期望上门时间</label>
+        <input type="text" id="inSchedule" class="form-control" value="紧急即刻响应 / 30分钟急达">
+      </div>
+      <button class="btn-submit-order" id="btnConfirmDispatch" style="background: var(--urgent-color);" onclick="processOrderSubmission()">提交工单并呼叫工程师</button>
+    </div>
+  </div>
+
+  <!-- 平台调度中心弹窗 -->
+  <div id="contactDrawer" class="drawer-scrim">
+    <div class="drawer-surface">
+      <div class="drawer-header">
+        <h3 class="drawer-title">Vgo 调度中心直联渠道</h3>
+        <button class="drawer-close" onclick="closeDrawer('contactDrawer')">&times;</button>
+      </div>
+      <a class="contact-card-btn" href="https://wa.me/60128172166" target="_blank">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i class="fab fa-whatsapp" style="font-size: 26px; color: #25D366;"></i>
+          <div>
+            <div style="font-weight: 800; font-size: 13.5px;">WhatsApp 调度专线</div>
+            <div style="font-size: 11px; color: var(--text-sub);">+60128172166 (一键启动对话)</div>
+          </div>
+        </div>
+        <i class="fas fa-chevron-right" style="color: #94A3B8;"></i>
+      </a>
+      <a class="contact-card-btn" href="tel:01172691788">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i class="fas fa-phone-volume" style="font-size: 22px; color: var(--urgent-color);"></i>
+          <div>
+            <div style="font-weight: 800; font-size: 13.5px;">24H 突发抢修调度热线</div>
+            <div style="font-size: 11px; color: var(--text-sub);">01172691788 (即刻拨通)</div>
+          </div>
+        </div>
+        <i class="fas fa-chevron-right" style="color: #94A3B8;"></i>
+      </a>
+      <div class="contact-card-btn" onclick="copyContact('vgo_official', '官方支持微信号已复制')">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i class="fab fa-weixin" style="font-size: 24px; color: #07C160;"></i>
+          <div>
+            <div style="font-weight: 800; font-size: 13.5px;">微信支持 (WeChat)</div>
+            <div style="font-size: 11px; color: var(--text-sub);">ID: vgo_official (点击复制)</div>
+          </div>
+        </div>
+        <i class="fas fa-copy" style="color: #94A3B8;"></i>
+      </div>
+      <div class="contact-card-btn" onclick="copyContact('vgo_service', 'Line 官方号已复制')">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i class="fab fa-line" style="font-size: 24px; color: #00C300;"></i>
+          <div>
+            <div style="font-weight: 800; font-size: 13.5px;">Line 官方频道</div>
+            <div style="font-size: 11px; color: var(--text-sub);">ID: vgo_service (点击复制)</div>
+          </div>
+        </div>
+        <i class="fas fa-copy" style="color: #94A3B8;"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 账户中心抽屉 -->
+  <div id="accountDrawer" class="drawer-scrim">
+    <div class="drawer-surface">
+      <div class="drawer-header">
+        <h3 class="drawer-title">客户账户</h3>
+        <button class="drawer-close" onclick="closeDrawer('accountDrawer')">&times;</button>
+      </div>
+      <div style="text-align: center; padding: 12px 0 20px;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary-light); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 10px;">
+          <i class="fas fa-user-shield"></i>
+        </div>
+        <div style="font-size: 16px; font-weight: 900;">Vgo 注册认证客户</div>
+        <div style="font-size: 12px; color: var(--text-sub); margin-top: 3px;">设备运行环境：移动端原生安全容器</div>
+      </div>
+      <div class="contact-card-btn" onclick="showToast('已激活急修专享补贴券：RM30')">
+        <span><i class="fas fa-ticket" style="color: var(--urgent-color); margin-right: 8px;"></i> 我的应急补贴券 (2 张可用)</span>
+        <span style="color: var(--urgent-color); font-weight: 800; font-size: 12px;">去使用</span>
+      </div>
+      <div class="contact-card-btn" onclick="showToast('高精度 GPS 定位校准成功')">
+        <span><i class="fas fa-location-crosshairs" style="color: var(--primary-color); margin-right: 8px;"></i> 重新校准作业定位</span>
+        <span style="font-size: 11px; color: var(--text-sub);">亚庇滨海核心区</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 应急急修服务库
+    const urgentItems = [
+      { id: 'u1', icon: 'fa-faucet-drip', name: '暗管爆裂 / 主水路严重漏水急修', time: '30分钟急达', pMY: 80, pSG: 60, tag: '紧急抢修', rating: '5.0 (1.4k)' },
+      { id: 'u2', icon: 'fa-bolt-lightning', name: '配电总闸跳闸 / 短路烧毁抢险', time: '30分钟急达', pMY: 90, pSG: 70, tag: '全天候响应', rating: '4.9 (980+)' },
+      { id: 'u3', icon: 'fa-snowflake', name: '冷气空调罢工 / 室内严重漏水急排', time: '45分钟到位', pMY: 75, pSG: 55, tag: '免拆速检', rating: '4.9 (1.1k)' },
+      { id: 'u4', icon: 'fa-key', name: '智能门锁锁死 / 紧急安全开锁换体', time: '20分钟急达', pMY: 100, pSG: 80, tag: '公安备案', rating: '5.0 (620+)' },
+      { id: 'u5', icon: 'fa-toilet', name: '主排污管道严重堵塞 / 机械高压疏通', time: '40分钟急达', pMY: 110, pSG: 85, tag: '专业机械', rating: '4.8 (830+)' },
+      { id: 'u6', icon: 'fa-shield-halved', name: '雨季屋面急性渗漏 / 结构应急防损', time: '1小时急达', pMY: 150, pSG: 120, tag: '工程级抢险', rating: '4.9 (340+)' }
+    ];
+
+    // 标准维保与工程安装库
+    const standardItems = [
+      { id: 's1', icon: 'fa-fan', name: '分体/中央空调全机化学药水深度洗净', time: '预约上门', pMY: 120, pSG: 85, tag: '效能回升', rating: '4.9 (1.2k)' },
+      { id: 's2', icon: 'fa-plug', name: '入户配电箱升级改造 / 漏电保护调优', time: '标准作业', pMY: 130, pSG: 90, tag: '用电安防', rating: '5.0 (450+)' },
+      { id: 's3', icon: 'fa-video', name: '高清监控摄像与智能门禁布线安装', time: '全套调试', pMY: 160, pSG: 110, tag: '弱电工程', rating: '4.9 (530+)' },
+      { id: 's4', icon: 'fa-water', name: '全屋水质净化设备 / 智能增压泵改装', time: '水工规范', pMY: 140, pSG: 95, tag: '循环水路', rating: '4.8 (390+)' },
+      { id: 's5', icon: 'fa-tv', name: '超薄大屏电视挂装 / 嵌入式家电精装', time: '水平精校', pMY: 70, pSG: 50, tag: '无损安装', rating: '4.9 (720+)' },
+      { id: 's6', icon: 'fa-network-wired', name: '全屋光纤组网 / Mesh Wi-Fi 弱电调试', time: '信号满格', pMY: 150, pSG: 100, tag: '千兆测速', rating: '5.0 (310+)' }
+    ];
+
+    let currentRegion = 'MY';
+    let currentSegment = 'urgent';
+    let activeItem = null;
+
+    function switchRegion(region) {
+      currentRegion = region;
+      document.getElementById('pillMY').classList.toggle('active', region === 'MY');
+      document.getElementById('pillSG').classList.toggle('active', region === 'SG');
+      
+      if (region === 'MY') {
+        document.getElementById('locLabel').innerText = '沙巴·亚庇 (Kota Kinabalu)';
+        document.getElementById('taxIndicator').innerText = '已含 8% SST 税费';
+      } else {
+        document.getElementById('locLabel').innerText = '新加坡市中心 (Central Region)';
+        document.getElementById('taxIndicator').innerText = '已含 9% GST 税费';
+      }
+      renderServiceGrid();
+      showToast(`已切换至 ${region === 'MY' ? '马来西亚 (MYR)' : '新加坡 (SGD)'} 市场`);
+    }
+
+    function selectSegment(segment) {
+      currentSegment = segment;
+      const tU = document.getElementById('segUrgent');
+      const tS = document.getElementById('segStandard');
+      
+      if (segment === 'urgent') {
+        tU.className = 'segment-tab active-urgent';
+        tS.className = 'segment-tab';
+        document.getElementById('gridTitle').innerHTML = '<i class="fas fa-bolt" style="color: var(--urgent-color);"></i> 应急快修项目';
+      } else {
+        tU.className = 'segment-tab';
+        tS.className = 'segment-tab active-standard';
+        document.getElementById('gridTitle').innerHTML = '<i class="fas fa-screwdriver-wrench" style="color: var(--primary-color);"></i> 维保与工程安装';
+      }
+      renderServiceGrid();
+    }
+
+    function renderServiceGrid() {
+      const container = document.getElementById('serviceGrid');
+      const list = currentSegment === 'urgent' ? urgentItems : standardItems;
+      const isUrgent = currentSegment === 'urgent';
+      const currency = currentRegion === 'MY' ? 'RM' : 'S$';
+
+      container.innerHTML = list.map(item => {
+        const raw = currentRegion === 'MY' ? item.pMY : item.pSG;
+        const tax = currentRegion === 'MY' ? 0.08 : 0.09;
+        const finalPrice = Math.round(raw * (1 + tax));
+        
+        return `
+          <div class="service-card" onclick="openOrderDrawer('${item.id}')">
+            <div class="card-visual" style="background: ${isUrgent ? '#FFF7ED' : '#F0F9FF'}; color: ${isUrgent ? 'var(--urgent-color)' : 'var(--primary-color)'};">
+              <i class="fas ${item.icon}"></i>
+              <span class="tier-badge" style="background: ${isUrgent ? 'var(--urgent-color)' : 'var(--primary-color)'};">${item.tag}</span>
+            </div>
+            <div class="card-content">
+              <div class="card-title">${item.name}</div>
+              <div class="card-spec">
+                <span><i class="fas fa-clock"></i> ${item.time}</span>
+                <span><i class="fas fa-star" style="color:#F59E0B;"></i> ${item.rating}</span>
+              </div>
+              <div class="card-action-row">
+                <span class="price-num">${currency} ${finalPrice}</span>
+                <button class="open-btn" style="background: ${isUrgent ? 'var(--urgent-color)' : 'var(--primary-color)'};">
+                  <i class="fas fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openOrderDrawer(id) {
+      const all = [...urgentItems, ...standardItems];
+      const item = all.find(x => x.id === id);
+      if (!item) return;
+      activeItem = item;
+
+      const currency = currentRegion === 'MY' ? 'RM' : 'S$';
+      const raw = currentRegion === 'MY' ? item.pMY : item.pSG;
+      const tax = currentRegion === 'MY' ? 0.08 : 0.09;
+      const finalPrice = Math.round(raw * (1 + tax));
+
+      document.getElementById('orderItemName').innerText = item.name;
+      document.getElementById('orderItemPrice').innerText = `${currency} ${finalPrice} (含税预估)`;
+      document.getElementById('orderItemSpec').innerText = `响应规格：${item.time} · 平台技术合规质保`;
+
+      const btn = document.getElementById('btnConfirmDispatch');
+      if (item.id.startsWith('u')) {
+        btn.style.background = 'var(--urgent-color)';
+        btn.innerText = '紧急呼叫工程师抢单';
+      } else {
+        btn.style.background = 'var(--primary-color)';
+        btn.innerText = '确认预约维保工时';
+      }
+
+      document.getElementById('bookingDrawer').style.display = 'flex';
+    }
+
+    function processOrderSubmission() {
+      const contact = document.getElementById('inContact').value.trim() || '客户';
+      const addr = document.getElementById('inAddress').value.trim() || '现场定位地址';
+      const time = document.getElementById('inSchedule').value.trim();
+      const sName = activeItem ? activeItem.name : 'Vgo 技术项目';
+
+      closeDrawer('bookingDrawer');
+      showToast('🚀 工单已进入调度队列，正在为您派单...');
+
+      const msg = encodeURIComponent(`【Vgo 商业工单】\n服务项目：${sName}\n联络信息：${contact}\n作业地址：${addr}\n时效要求：${time}\n国家区域：${currentRegion}`);
+      setTimeout(() => {
+        window.location.href = `https://wa.me/60128172166?text=${msg}`;
+      }, 500);
+    }
+
+    function bookDirectTech(name, title, rating, orders) {
+      showToast(`已指定首选技术工程师: ${name} (${title})`);
+      openUrgentModal();
+    }
+
+    function openUrgentModal() {
+      selectSegment('urgent');
+      openOrderDrawer('u1');
+    }
+    function openContactCenter() { document.getElementById('contactDrawer').style.display = 'flex'; }
+    function openAccountCenter() { document.getElementById('accountDrawer').style.display = 'flex'; }
+    function closeDrawer(id) { document.getElementById(id).style.display = 'none'; }
+
+    function copyContact(txt, tip) {
+      navigator.clipboard ? navigator.clipboard.writeText(txt) : null;
+      showToast(tip);
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2500);
+    }
+
+    function switchBottomTab(el, tab) {
+      document.querySelectorAll('.nav-tab').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+      if (tab === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        showToast('已返回服务大厅');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderServiceGrid();
+      document.querySelectorAll('.drawer-scrim').forEach(mask => {
+        mask.addEventListener('click', (e) => {
+          if (e.target === mask) mask.style.display = 'none';
+        });
+      });
+    });
+  </script>
+</body>
+</html>

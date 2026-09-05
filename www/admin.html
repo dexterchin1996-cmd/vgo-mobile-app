@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script src="/config.js"></script>
+  <script src="/app-native-bridge.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vgo 平台总控中枢 | 运营与运维仪表盘</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Native App Optimization -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Vgo">
+  <meta name="format-detection" content="telephone=no">
+  <style>
+    /* 适配 iPhone 灵动岛 / 底部横条 Safe Area 与原生弹性手势 */
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      overscroll-behavior-y: contain;
+    }
+    input, textarea { user-select: auto; }
+  </style>
+
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center">
+  <div class="w-full max-w-2xl min-h-screen p-4 flex flex-col justify-between space-y-4">
+
+    <!-- 顶部状态栏 -->
+    <header class="bg-slate-800/80 backdrop-blur border border-slate-700 p-4 rounded-2xl flex justify-between items-center shadow-lg">
+      <div>
+        <h1 class="text-xl font-black bg-gradient-to-r from-teal-400 via-amber-400 to-rose-400 bg-clip-text text-transparent">
+          Vgo Platform Admin
+        </h1>
+        <p class="text-[10px] text-slate-400">Kota Kinabalu 核心业务运营 · 总控中枢</p>
+      </div>
+      <div id="status-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+        🟢 核心引擎健康
+      </div>
+    </header>
+
+    <!-- 实时指标卡片 -->
+    <div class="grid grid-cols-3 gap-3 text-xs">
+      <div class="bg-slate-800 border border-slate-700 p-3 rounded-xl">
+        <span class="text-slate-400 block text-[10px]">今日 GMV 流水</span>
+        <span class="text-lg font-black text-amber-400">RM 1,820</span>
+      </div>
+      <div class="bg-slate-800 border border-slate-700 p-3 rounded-xl">
+        <span class="text-slate-400 block text-[10px]">Escrow 托管在押</span>
+        <span class="text-lg font-black text-teal-400">RM 205.00</span>
+      </div>
+      <div class="bg-slate-800 border border-slate-700 p-3 rounded-xl">
+        <span class="text-slate-400 block text-[10px]">在线履约运力</span>
+        <span class="text-lg font-black text-indigo-400">2 位 (店/技)</span>
+      </div>
+    </div>
+
+    <!-- 商户与技师资质审核中枢 (KYC) -->
+    <section class="bg-slate-800 border border-slate-700 p-4 rounded-2xl space-y-3 text-xs shadow-md">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+        <span class="font-bold text-sm text-slate-200">📋 商户入驻与资质审核 (SSM / 营业资质)</span>
+        <button onclick="loadMerchants()" class="text-teal-400 hover:underline">🔄 刷新列表</button>
+      </div>
+      <div id="merchant-audit-list" class="space-y-2">
+        <div class="text-slate-400 text-center py-4">正在拉取资质审查池...</div>
+      </div>
+    </section>
+
+    <!-- 佣金与分账动态调控中枢 -->
+    <section class="bg-slate-800 border border-slate-700 p-4 rounded-2xl space-y-4 text-xs shadow-md">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+        <span class="font-bold text-sm text-slate-200">⚙️ 动态佣金与分账策略分配 (即时生效)</span>
+        <span class="text-[10px] text-teal-400">● 动态生效无需重启</span>
+      </div>
+
+      <!-- 1. 到店 -->
+      <div class="bg-slate-900/60 p-3 rounded-xl space-y-2 border border-slate-700/50">
+        <div class="flex justify-between items-center font-bold">
+          <span class="text-emerald-400">🟢 翡翠青 · 到店 (STORE)</span>
+          <span class="text-slate-400 text-[10px]">泰式养生等线下旗舰店</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <div>
+            <label class="text-[10px] text-slate-400">技师分成比例 (%)</label>
+            <input id="store-tech" type="number" value="85" class="w-full bg-slate-800 border border-slate-600 rounded p-1.5 text-white font-bold">
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400">平台技术抽成 (%)</label>
+            <input id="store-platform" type="number" value="15" class="w-full bg-slate-800 border border-slate-600 rounded p-1.5 text-white font-bold">
+          </div>
+        </div>
+        <button onclick="saveRule('WELLNESS_STORE', 'store-platform', 'store-tech')" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg font-bold transition-all">
+          更新并同步到店分成
+        </button>
+      </div>
+
+      <!-- 2. 突发维修 -->
+      <div class="bg-slate-900/60 p-3 rounded-xl space-y-2 border border-slate-700/50">
+        <div class="flex justify-between items-center font-bold">
+          <span class="text-amber-400">🟠 活力橙 · 突发急修 (REPAIR)</span>
+          <span class="text-slate-400 text-[10px]">水管/电路/开锁师傅</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 pt-1">
+          <div>
+            <label class="text-[10px] text-slate-400">技师分成 (%)</label>
+            <input id="repair-tech" type="number" value="90" class="w-full bg-slate-800 border border-slate-600 rounded p-1.5 text-white font-bold">
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400">平台抽成 (%)</label>
+            <input id="repair-platform" type="number" value="10" class="w-full bg-slate-800 border border-slate-600 rounded p-1.5 text-white font-bold">
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400">抢单席位线索费 (RM)</label>
+            <input id="repair-lead" type="number" value="5" class="w-full bg-slate-800 border border-slate-600 rounded p-1.5 text-white font-bold">
+          </div>
+        </div>
+        <button onclick="saveRule('REPAIR', 'repair-platform', 'repair-tech', 50, 'repair-lead')" class="w-full bg-amber-600 hover:bg-amber-500 py-2 rounded-lg font-bold transition-all">
+          更新并同步急修分账与席位费
+        </button>
+      </div>
+    </section>
+
+    <!-- 运维治理与升级维护模式 -->
+    <section class="bg-slate-800 border border-slate-700 p-4 rounded-2xl space-y-3 text-xs shadow-md">
+      <span class="font-bold text-sm text-slate-200 block border-b border-slate-700 pb-2">🛠️ 平台运维治理与停机维护控制</span>
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="font-bold">全局升级维护模式</p>
+          <p class="text-[10px] text-slate-400">开启后客户端暂停发起新下单与充值，保障数据库升级安全</p>
+        </div>
+        <button id="btn-toggle-maint" onclick="toggleMaintenance()" class="px-4 py-2 bg-rose-600/20 text-rose-400 border border-rose-500/40 rounded-xl font-bold hover:bg-rose-600 hover:text-white transition-all">
+          切换维护模式
+        </button>
+      </div>
+    </section>
+
+    <!-- 快速链接导航 -->
+    <footer class="grid grid-cols-3 gap-2 text-center text-xs">
+      <a href="/VgoMainUI.html" class="bg-slate-800 py-2.5 rounded-xl border border-slate-700 text-teal-400 hover:bg-slate-700">📱 顾客端</a>
+      <a href="/merchant.html" class="bg-slate-800 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-700">🏪 商家核销端</a>
+      <a href="/tech.html" class="bg-slate-800 py-2.5 rounded-xl border border-slate-700 text-amber-400 hover:bg-slate-700">👨‍🔧 师傅抢单端</a>
+    </footer>
+
+  </div>
+
+  <script>
+    async function loadMerchants() {
+      try {
+        const res = await fetch("/api/v1/admin/merchants");
+        const d = await res.json();
+        const box = document.getElementById("merchant-audit-list");
+        if (d.success && d.data.length > 0) {
+          box.innerHTML = d.data.map(m => {
+            const statusClass = m.status === 'APPROVED' 
+              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+              : (m.status === 'REJECTED' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30');
+            return `
+              <div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 space-y-1.5">
+                <div class="flex justify-between items-center font-bold">
+                  <span class="text-white text-xs">${m.shop_name}</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono ${statusClass}">${m.status}</span>
+                </div>
+                <p class="text-slate-400 text-[10px]">🏢 SSM: <span class="font-mono text-slate-200">${m.ssm_no}</span> | 📞 ${m.phone}</p>
+                <p class="text-slate-400 text-[10px]">📍 ${m.address}</p>
+                ${m.status === 'PENDING' ? `
+                  <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button onclick="auditMerchant(${m.id}, 'APPROVED')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-xs transition-all">✓ 批准入驻</button>
+                    <button onclick="auditMerchant(${m.id}, 'REJECTED')" class="bg-rose-600/30 text-rose-300 hover:bg-rose-600 hover:text-white font-bold py-1.5 rounded-lg text-xs transition-all">✕ 驳回</button>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('');
+        }
+      } catch(e) {}
+    }
+
+    async function auditMerchant(id, action) {
+      try {
+        const res = await fetch("/api/v1/admin/merchants/audit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-admin-key": "VGO_SECURE_TOKEN_2026" },
+          body: JSON.stringify({ merchant_id: id, action })
+        });
+        const d = await res.json();
+        alert(d.message);
+        loadMerchants();
+      } catch(e) {
+        alert("审批操作失败");
+      }
+    }
+
+    async function saveRule(type, platformId, techId, cap = 0, leadId = null) {
+      const pRate = document.getElementById(platformId).value;
+      const tRate = document.getElementById(techId).value;
+      const lead = leadId ? document.getElementById(leadId).value : 0;
+      try {
+        const res = await fetch('/api/v1/admin/rules/update', {
+          method: 'POST',
+          headers: { "Content-Type": "application/json", "x-admin-key": "VGO_SECURE_TOKEN_2026" },
+          body: JSON.stringify({ service_type: type, platform_rate: pRate, tech_rate: tRate, cap_amount: cap, lead_fee: lead })
+        });
+        const d = await res.json();
+        alert(d.message || '规则已更新');
+      } catch (e) {
+        alert('网络通信异常');
+      }
+    }
+
+    async function toggleMaintenance() {
+      try {
+        const res = await fetch('/api/v1/admin/maintenance/toggle', { method: 'POST' });
+        const d = await res.json();
+        alert(d.message);
+      } catch(e) {
+        alert('操作失败');
+      }
+    }
+
+    loadMerchants();
+  </script>
+</body>
+</html>

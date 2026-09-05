@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Vgo Merchant - 商家入驻与服务同步中枢</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <style>
+    body { background: #F8FAFC; color: #0F172A; padding: 16px; }
+    .store-box { background: #fff; border-radius: 16px; padding: 20px; border: 1px solid var(--color-border); box-shadow: var(--shadow-sm); }
+    .field-group { margin-bottom: 12px; }
+    .field-group label { font-size: 12px; font-weight: 800; color: #475569; display: block; margin-bottom: 6px; }
+    .field-group input, .field-group textarea {
+      width: 100%; padding: 11px 14px; border: 1.5px solid var(--color-border); border-radius: 12px; font-size: 13.5px; outline: none;
+    }
+  </style>
+</head>
+<body>
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+    <div style="width: 36px; height: 36px; border-radius: 10px; background: #0D9488; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900;">V</div>
+    <div>
+      <h2 style="font-size: 16px; font-weight: 900;">Vgo 商家入驻管理工作台</h2>
+      <p style="font-size: 11px; color: #64748B;">资料审核认证通过后，服务与价格自动同步至 Vgo 平台大厅</p>
+    </div>
+  </div>
+
+  <div class="store-box">
+    <div class="field-group">
+      <label>门店/工作室全称</label>
+      <input type="text" id="storeName" placeholder="例如：自然生活 SPA 馆 / 萌宠养护工坊">
+    </div>
+    <div class="field-group">
+      <label>经营品类行业</label>
+      <input type="text" id="storeCategory" placeholder="理疗养生 / 宠物美容 / 美容美睫 / 家电工程">
+    </div>
+    <div class="field-group">
+      <label>店铺实体地址</label>
+      <input type="text" id="storeAddress" placeholder="详细商厦/街道门牌号">
+    </div>
+    <div class="field-group">
+      <label>同步上架服务项目与公开价格 (以逗号隔开)</label>
+      <textarea id="storeServices" rows="3" placeholder="例如：精油全身调理 RM138, 经络穴位推拿 RM98, 宠物药浴 RM80"></textarea>
+    </div>
+    <button style="width: 100%; padding: 14px; border: none; border-radius: 12px; background: #0D9488; color: #fff; font-weight: 900; font-size: 14px; cursor: pointer;" onclick="alert('✅ 门店信息与服务已提交！审核认证通过后，将自动实时同步至 Vgo 顾客大厅。')">
+      提交审核并一键同步平台
+    </button>
+  </div>
+</body>
+</html>

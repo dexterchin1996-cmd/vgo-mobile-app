@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script src="/config.js"></script>
+  <script src="/app-native-bridge.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vgo 商家端 | 财务清算与核销中枢</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Native App Optimization -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Vgo">
+  <meta name="format-detection" content="telephone=no">
+  <style>
+    /* 适配 iPhone 灵动岛 / 底部横条 Safe Area 与原生弹性手势 */
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      overscroll-behavior-y: contain;
+    }
+    input, textarea { user-select: auto; }
+  </style>
+
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col items-center">
+  <div class="w-full max-w-md bg-white min-h-screen shadow-2xl flex flex-col">
+    <!-- Header -->
+    <header class="bg-slate-900 text-white p-4 flex justify-between items-center shadow-md">
+      <div>
+        <h1 class="text-xl font-black text-teal-400">Vgo 商家门户</h1>
+        <p class="text-[10px] text-slate-400">Asia City 旗舰店 · 财务与清算中枢</p>
+      </div>
+      <span class="text-xs bg-teal-500/20 text-teal-400 px-2.5 py-1 rounded-full font-semibold border border-teal-500/30">
+        🏪 营业中
+      </span>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="grid grid-cols-2 bg-slate-800 text-xs font-bold text-center border-t border-slate-700">
+      <button id="tab-verify" onclick="switchTab('verify')" class="py-3 text-white bg-slate-700 border-b-2 border-teal-400 transition-all">🔑 订单 6 位核销台</button>
+      <button id="tab-finance" onclick="switchTab('finance')" class="py-3 text-slate-400 hover:text-white transition-all">📊 财务清算看板</button>
+    </div>
+
+    <!-- Main Workspace -->
+    <main class="p-4 flex-1 space-y-4 overflow-y-auto text-xs">
+      <!-- 1. Verification Section -->
+      <section id="sec-verify" class="space-y-4">
+        <div class="bg-teal-50 p-4 rounded-xl border border-teal-100 space-y-3">
+          <p class="font-bold text-teal-900 text-sm">Escrow 托管资金解冻与清算</p>
+          <p class="text-slate-600">请输入顾客出示的 6 位数字验证码，系统将自动完成服务验收并按 80/20 比例清算分账：</p>
+          <input id="v-code" type="text" maxlength="6" placeholder="------" class="w-full p-3 border rounded-lg bg-white text-center font-mono font-black text-2xl tracking-widest">
+          <button onclick="verifyOrderCode()" class="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-xl font-bold shadow transition-all">
+            验证核销并释放清算资金
+          </button>
+        </div>
+        <div id="verify-result" class="hidden text-center font-bold p-3 rounded-xl border"></div>
+      </section>
+
+      <!-- 2. Finance & Audit Section -->
+      <section id="sec-finance" class="hidden space-y-4">
+        <div class="bg-slate-900 text-white p-4 rounded-xl shadow space-y-2">
+          <p class="opacity-80">今日营业总额 (Escrow 结算池)</p>
+          <p class="text-2xl font-black">RM 1,700.00</p>
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800 text-[11px]">
+            <div>技师分账总额 (80%): <span class="text-emerald-400 font-bold">RM 1,360.00</span></div>
+            <div>平台技术服务费 (20%): <span class="text-amber-400 font-bold">RM 340.00</span></div>
+          </div>
+        </div>
+
+        <div class="border p-3 rounded-xl bg-white space-y-2">
+          <div class="flex justify-between items-center font-bold text-slate-800">
+            <span>班次交接与对账审计</span>
+            <button onclick="runShiftAudit()" class="text-teal-600 underline">📥 封存当前班次</button>
+          </div>
+          <div class="space-y-1 text-slate-600">
+            <div class="flex justify-between border-b py-1"><span>早班 (Morning Shift)</span><span class="text-teal-600 font-bold">已对账</span></div>
+            <div class="flex justify-between border-b py-1"><span>晚班 (Evening Shift)</span><span class="text-amber-600 font-bold">进行中</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function switchTab(tab) {
+      ['verify', 'finance'].forEach(t => {
+        document.getElementById(`sec-${t}`).classList.toggle('hidden', t !== tab);
+        document.getElementById(`tab-${t}`).className = t === tab 
+          ? "py-3 text-white bg-slate-700 border-b-2 border-teal-400 font-bold transition-all" 
+          : "py-3 text-slate-400 hover:text-white transition-all";
+      });
+    }
+
+    async function verifyOrderCode() {
+      const code = document.getElementById('v-code').value;
+      if (!code || code.length !== 6) return alert('请输入完整的 6 位数字核销码');
+
+      try {
+        const res = await fetch('/api/v1/merchant/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ verification_code: code, merchant_id: 1 })
+        });
+        const data = await res.json();
+        const box = document.getElementById('verify-result');
+        box.classList.remove('hidden');
+        if (data.success) {
+          box.className = "text-center font-bold p-3 rounded-xl border bg-emerald-50 text-emerald-800 border-emerald-200";
+          box.innerHTML = `✅ <b>核销成功！</b> 托管资金已按 80/20 比例自动清算。`;
+        } else {
+          box.className = "text-center font-bold p-3 rounded-xl border bg-red-50 text-red-800 border-red-200";
+          box.innerHTML = `❌ 核销失败: ${data.error || '验证码无效或已使用'}`;
+        }
+      } catch (e) {
+        alert('网络请求异常');
+      }
+    }
+
+    async function runShiftAudit() {
+      try {
+        const res = await fetch('/api/finance/shift-audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ merchant_id: 1, shift_name: 'Evening Shift ' + new Date().toLocaleDateString(), cash_collected: 500.00, online_collected: 1200.00 })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('🎉 班次交接审计数据已成功封存并写入对账表！');
+        }
+      } catch (e) {
+        alert('审计封存失败');
+      }
+    }
+  </script>
+</body>
+</html>
