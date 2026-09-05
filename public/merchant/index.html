@@ -3,87 +3,457 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Vgo Merchant - 商家入驻提报与平台同步中枢</title>
+  <title>Vgo Merchant - 实体商户数字化管理中台</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../assets/css/design-system.css">
   <style>
-    body { background: #F8FAFC; color: #0F172A; padding: 16px; }
-    .merchant-card { background: #fff; border-radius: 18px; padding: 20px; border: 1.5px solid var(--color-border); box-shadow: var(--shadow-sm); }
-    .form-item { margin-bottom: 14px; }
-    .form-item label { font-size: 12.5px; font-weight: 800; color: #334155; display: block; margin-bottom: 6px; }
-    .form-item input, .form-item textarea {
-      width: 100%; padding: 11px 14px; border: 1.5px solid var(--color-border); border-radius: 12px; font-size: 14px; outline: none;
+    /* 商户端采用专业、明晰的浅色管理中台设计 (SaaS Workbench) */
+    body {
+      background: #F1F5F9; color: var(--color-text-main);
+      padding-bottom: calc(75px + var(--safe-bottom)); user-select: none;
     }
-    .form-item input:focus, .form-item textarea:focus { border-color: #0D9488; }
-    .btn-sync {
-      width: 100%; padding: 15px; border: none; border-radius: 14px;
-      background: #0D9488; color: #fff; font-weight: 900; font-size: 15px; cursor: pointer;
+
+    /* 顶部商户中枢栏 */
+    .merchant-topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px);
+      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--color-border);
     }
+    .store-brand-badge {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .store-logo-frame {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg, #0D9488, #0284C7);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 20px; box-shadow: var(--shadow-sm);
+    }
+
+    /* 今日运营数据大盘 */
+    .metric-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      padding: 14px 16px 8px;
+    }
+    .metric-card {
+      background: #fff; border-radius: 16px; padding: 14px 10px;
+      border: 1px solid var(--color-border); text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .metric-num { font-size: 18px; font-weight: 900; color: var(--color-teal); margin-top: 4px; }
+    .metric-label { font-size: 11px; color: var(--color-text-muted); font-weight: 700; }
+
+    /* 商户中台四大功能 Tab 导航 */
+    .merchant-tab-nav {
+      display: flex; margin: 6px 16px 14px; background: #E2E8F0; padding: 3px; border-radius: 14px;
+    }
+    .m-tab-btn {
+      flex: 1; padding: 9px 4px; border: none; border-radius: 11px; background: transparent;
+      font-size: 12.5px; font-weight: 800; color: var(--color-text-sub); cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .m-tab-btn.active { background: #fff; color: var(--color-text-main); box-shadow: var(--shadow-sm); }
+
+    /* 模块面板容器 */
+    .module-panel { display: none; padding: 0 16px; }
+    .module-panel.active { display: block; }
+
+    /* 卡片容器 */
+    .panel-card {
+      background: #fff; border-radius: 18px; padding: 18px;
+      border: 1px solid var(--color-border); box-shadow: var(--shadow-sm); margin-bottom: 14px;
+    }
+    .card-headline {
+      font-size: 14.5px; font-weight: 900; display: flex; align-items: center; gap: 8px;
+      margin-bottom: 14px; color: var(--color-text-main);
+    }
+
+    /* 表单组件 */
+    .form-row { margin-bottom: 12px; }
+    .form-row label {
+      font-size: 12px; font-weight: 800; color: var(--color-text-sub); display: block; margin-bottom: 5px;
+    }
+    .form-input-box, .form-textarea-box {
+      width: 100%; padding: 11px 13px; border: 1.5px solid var(--color-border); border-radius: 12px;
+      font-size: 13.5px; outline: none; background: #F8FAFC; transition: border-color 0.2s;
+    }
+    .form-input-box:focus, .form-textarea-box:focus {
+      border-color: var(--color-teal); background: #fff;
+    }
+
+    /* 门店相册上传预览格 */
+    .gallery-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0;
+    }
+    .gallery-slot {
+      height: 80px; border-radius: 12px; border: 1.5px dashed var(--color-border);
+      background: #F8FAFC; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 10.5px; color: var(--color-text-muted); cursor: pointer; overflow: hidden; position: relative;
+    }
+    .gallery-slot img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* 服务项目列表行 */
+    .sku-list-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px; background: #F8FAFC; border: 1px solid var(--color-border);
+      border-radius: 12px; margin-bottom: 8px;
+    }
+
+    /* 底部大拇指专属核销浮动栏 */
+    .dock-merchant-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: calc(56px + var(--safe-bottom));
+      padding-bottom: var(--safe-bottom); background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(16px); display: flex; border-top: 1px solid var(--color-border); z-index: 120;
+    }
+    .dock-merchant-cell {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: var(--color-text-muted); font-size: 10px; font-weight: 700; cursor: pointer; gap: 3px;
+    }
+    .dock-merchant-cell.active { color: var(--color-teal); }
   </style>
 </head>
 <body>
-  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px;">
-    <div style="width: 40px; height: 40px; border-radius: 12px; background: #0D9488; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px;">V</div>
-    <div>
-      <h2 style="font-size: 17px; font-weight: 900;">Vgo 实体商户认证与同步控制台</h2>
-      <p style="font-size: 11px; color: #64748B;">资料提交完成即可实时同步至 Vgo 平台顾客大厅展示</p>
+
+  <!-- 顶部状态栏 -->
+  <header class="merchant-topbar">
+    <div class="store-brand-badge">
+      <div class="store-logo-frame">店</div>
+      <div>
+        <div style="font-size: 14.5px; font-weight: 900; display: flex; align-items: center; gap: 5px;">
+          <span id="txtStoreNameHeader">绿意美学·经络生活馆</span>
+          <span style="font-size: 10px; background: #CCFBF1; color: #0D9488; padding: 2px 6px; border-radius: 4px; font-weight: 800;">官方认证</span>
+        </div>
+        <div style="font-size: 10.5px; color: var(--color-text-muted); margin-top: 1px;">
+          备案编号: <span id="txtStoreCert">SSM-202401889K</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-press" style="background:#F1F5F9; border:1px solid #CBD5E1; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:800;" onclick="window.location.href='../customer/index.html'">
+      <i class="fas fa-eye"></i> 顾客视角
+    </button>
+  </header>
+
+  <!-- 今日运营大盘卡片 -->
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="metric-label">今日营业流水</div>
+      <div class="metric-num" id="metricTurnover">RM 1,280</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">已核销工单</div>
+      <div class="metric-num" id="metricOrdersCount">12 单</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">待到店核销</div>
+      <div class="metric-num" style="color: #EA580C;" id="metricPendingCount">3 单</div>
     </div>
   </div>
 
-  <div class="merchant-card">
-    <div class="form-item">
-      <label>实体店铺/工作室全称</label>
-      <input type="text" id="inStoreName" placeholder="例如：加雅街芳香理疗馆 / 萌宠专业美容沙龙">
-    </div>
-    <div class="form-item">
-      <label>所属经营大类</label>
-      <input type="text" id="inStoreCategory" placeholder="理疗养生 / 美容美妆 / 宠物美容 / 水电工程">
-    </div>
-    <div class="form-item">
-      <label>店铺具体商厦/街道门牌地址</label>
-      <input type="text" id="inStoreAddr" placeholder="例如：沙巴·亚庇加雅街 68 号 2 楼">
-    </div>
-    <div class="form-item">
-      <label>营业时间</label>
-      <input type="text" id="inStoreHours" value="10:00 - 22:30">
-    </div>
-    <div class="form-item">
-      <label>同步上架服务项目列表 (以逗号隔开)</label>
-      <textarea id="inStoreServices" rows="3" placeholder="例如：中式经络推拿, 植物精油调理, 草本足道"></textarea>
-    </div>
-
-    <button class="btn-sync" onclick="handleStoreSync()">提交认证并一键同步大厅</button>
+  <!-- 商户中台四大功能切换 -->
+  <div class="merchant-tab-nav">
+    <button class="m-tab-btn active" id="tab_btn_shelf" onclick="switchMerchantTab('shelf')">
+      <i class="fas fa-boxes-stacked"></i> 服务货架
+    </button>
+    <button class="m-tab-btn" id="tab_btn_verify" onclick="switchMerchantTab('verify')">
+      <i class="fas fa-qrcode"></i> 扫码核销
+    </button>
+    <button class="m-tab-btn" id="tab_btn_store" onclick="switchMerchantTab('store')">
+      <i class="fas fa-store"></i> 门店装修
+    </button>
+    <button class="m-tab-btn" id="tab_btn_ledger" onclick="switchMerchantTab('ledger')">
+      <i class="fas fa-receipt"></i> 财务对账
+    </button>
   </div>
 
+  <!-- ======================================================== -->
+  <!-- 模块一：服务货架管理与实时同步 (Shelf Panel) -->
+  <!-- ======================================================== -->
+  <div class="module-panel active" id="panel_shelf">
+    <div class="panel-card">
+      <div class="card-headline" style="justify-content: space-between;">
+        <span><i class="fas fa-list-check" style="color: var(--color-teal);"></i> 门店当前上架服务 (实时同步顾客大厅)</span>
+        <button class="btn-press" style="border:none; background:var(--color-teal); color:#fff; padding:6px 12px; border-radius:10px; font-size:11.5px; font-weight:800;" onclick="openAddSkuModal()">
+          <i class="fas fa-plus"></i> 新增项目
+        </button>
+      </div>
+      <div id="merchantSkuListContainer">
+        <!-- 动态渲染该商户的已上架项目 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 模块二：扫码与验证码核销台 (Verify Panel) -->
+  <!-- ======================================================== -->
+  <div class="module-panel" id="panel_verify">
+    <div class="panel-card" style="text-align: center;">
+      <div class="card-headline" style="justify-content: center;">
+        <i class="fas fa-qrcode" style="color: var(--color-teal);"></i> 到店服务快速核销台
+      </div>
+      <div style="background: #F8FAFC; border: 1.5px dashed var(--color-border); border-radius: 18px; padding: 24px; margin: 10px 0;">
+        <i class="fas fa-camera" style="font-size: 38px; color: #94A3B8; margin-bottom: 10px;"></i>
+        <div style="font-weight: 800; font-size: 13.5px;">出示顾客订单核销码</div>
+        <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px;">支持光学扫描顾客手机端专属二维码</div>
+        <button class="btn-press" style="margin-top: 14px; background: #0284C7; color:#fff; border:none; padding:10px 20px; border-radius:12px; font-weight:800; font-size:13px;" onclick="simulateCameraScanner()">
+          <i class="fas fa-expand"></i> 模拟启动扫码镜头
+        </button>
+      </div>
+
+      <div style="margin: 16px 0 8px; font-size: 12px; font-weight: 800; color: var(--color-text-muted);">或手动输入 6 位核销密码：</div>
+      <input type="text" id="storeVerifyInput" maxlength="6" style="width: 100%; min-height: 48px; background: #F8FAFC; border: 1.5px solid var(--color-border); border-radius: 14px; text-align: center; font-size: 20px; letter-spacing: 6px; font-weight: 900; outline: none;" placeholder="••••••">
+
+      <button class="btn-press" style="width: 100%; min-height: 48px; background: var(--color-teal); color:#fff; border:none; border-radius:14px; font-weight:900; font-size:15px; margin-top: 12px;" onclick="executeMerchantVerify()">
+        立即核验单据
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 模块三：门店档案与相册装修 (Store Info Panel) -->
+  <!-- ======================================================== -->
+  <div class="module-panel" id="panel_store">
+    <div class="panel-card">
+      <div class="card-headline">
+        <i class="fas fa-store" style="color: var(--color-teal);"></i> 门店资料与实景相册装修
+      </div>
+      <div class="form-row">
+        <label>店铺实体全称</label>
+        <input type="text" id="storeFormName" class="form-input-box" value="绿意美学·经络生活馆">
+      </div>
+      <div class="form-row">
+        <label>所属行业品类</label>
+        <input type="text" id="storeFormCategory" class="form-input-box" value="理疗养生 / 芳香推拿">
+      </div>
+      <div class="form-row">
+        <label>具体商厦/街道门牌地址</label>
+        <input type="text" id="storeFormAddr" class="form-input-box" value="沙巴·亚庇滨海大道 88 号 (靠近大茄来)">
+      </div>
+      <div class="form-row">
+        <label>每日营业时段</label>
+        <input type="text" id="storeFormHours" class="form-input-box" value="10:00 - 23:00">
+      </div>
+
+      <div style="font-size: 12px; font-weight: 800; color: var(--color-text-sub); margin: 10px 0 4px;">门店实景相册 (展示给顾客)：</div>
+      <div class="gallery-grid">
+        <div class="gallery-slot">
+          <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=300&auto=format&fit=crop&q=80">
+        </div>
+        <div class="gallery-slot">
+          <img src="https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=300&auto=format&fit=crop&q=80">
+        </div>
+        <div class="gallery-slot btn-press" onclick="window.vgoDialog.toast('已模拟选择并上传新环境照片')">
+          <i class="fas fa-plus" style="font-size: 16px; margin-bottom: 2px;"></i>
+          <span>上传照片</span>
+        </div>
+      </div>
+
+      <button class="btn-press" style="width:100%; min-height:48px; background:var(--color-teal); color:#fff; border:none; border-radius:14px; font-weight:900; font-size:14.5px; margin-top:14px;" onclick="saveStoreSettings()">
+        保存装修并实时同步至大厅
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 模块四：财务对账与结算 (Ledger Panel) -->
+  <!-- ======================================================== -->
+  <div class="module-panel" id="panel_ledger">
+    <div class="panel-card">
+      <div class="card-headline" style="justify-content: space-between;">
+        <span><i class="fas fa-file-invoice-dollar" style="color: var(--color-teal);"></i> 营业资金结算明细</span>
+        <span style="font-size: 11px; color: var(--color-text-muted);">平台费率 10%</span>
+      </div>
+      <div style="background: #F8FAFC; border-radius: 14px; padding: 14px; border: 1px solid var(--color-border); margin-bottom: 12px;">
+        <div style="font-size: 11px; color: var(--color-text-muted);">本周待结算净额 (已扣 SST 与抽成)</div>
+        <div style="font-size: 24px; font-weight: 900; color: #10B981; margin-top: 4px;">RM 3,680.00</div>
+      </div>
+      <div style="font-size: 12px; font-weight: 800; color: var(--color-text-sub); margin-bottom: 8px;">最近对账流水记录：</div>
+      <div style="font-size: 11.5px; color: var(--color-text-sub);">
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #F1F5F9;">
+          <span>今日核销 12 单汇总</span>
+          <span style="font-weight:800; color:#10B981;">+RM 1,152.00</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #F1F5F9;">
+          <span>昨天核销 15 单汇总</span>
+          <span style="font-weight:800; color:#10B981;">+RM 1,440.00</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:8px 0;">
+          <span>DuitNow 自动转账至联昌银行户口</span>
+          <span style="font-weight:800; color:#0284C7;">-RM 2,592.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部固定大拇指导航栏 -->
+  <nav class="dock-merchant-nav">
+    <div class="dock-merchant-cell active" onclick="switchMerchantTab('shelf')"><i class="fas fa-boxes-stacked" style="font-size:18px;"></i><span>服务货架</span></div>
+    <div class="dock-merchant-cell" onclick="switchMerchantTab('verify')"><i class="fas fa-qrcode" style="font-size:18px;"></i><span>扫码核销</span></div>
+    <div class="dock-merchant-cell" onclick="switchMerchantTab('store')"><i class="fas fa-store" style="font-size:18px;"></i><span>门店装修</span></div>
+    <div class="dock-merchant-cell" onclick="switchMerchantTab('ledger')"><i class="fas fa-receipt" style="font-size:18px;"></i><span>财务对账</span></div>
+  </nav>
+
+  <!-- 模态框：新增/编辑服务项目 -->
+  <div id="addSkuModalOverlay" class="center-modal-scrim">
+    <div class="center-modal-box" style="padding: 22px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size: 16.5px; font-weight: 900;">添加门店自营服务项目</h3>
+        <button onclick="closeAddSkuModal()" style="border:none; background:none; font-size:24px; color:#94A3B8; cursor:pointer;">&times;</button>
+      </div>
+      <div class="form-row">
+        <label>服务项目名称</label>
+        <input type="text" id="inNewSkuTitle" class="form-input-box" placeholder="例如：天然热石暖宫经络调理">
+      </div>
+      <div class="form-row">
+        <label>服务时长 (分钟)</label>
+        <input type="text" id="inNewSkuDuration" class="form-input-box" value="60分钟">
+      </div>
+      <div class="form-row">
+        <label>公开价格 (RM)</label>
+        <input type="number" id="inNewSkuPrice" class="form-input-box" placeholder="例如：128">
+      </div>
+      <div class="form-row">
+        <label>核心耗材/手法亮点简述</label>
+        <input type="text" id="inNewSkuDesc" class="form-input-box" placeholder="例如：火山能量热石深层驱寒渗透，缓解小腹酸坠">
+      </div>
+      <button class="btn-press" style="width:100%; min-height:48px; background:var(--color-teal); color:#fff; border:none; border-radius:14px; font-weight:900; font-size:14.5px; margin-top:10px;" onclick="confirmAddSku()">
+        立即同步上架至大厅
+      </button>
+    </div>
+  </div>
+
+  <!-- 引入公共脚本 -->
+  <script src="../core/dialogEngine.js"></script>
   <script src="../modules/catalogDatabase.js"></script>
   <script src="../modules/merchantSyncEngine.js"></script>
-  <script>
-    function handleStoreSync() {
-      const name = document.getElementById('inStoreName').value.trim();
-      const cat = document.getElementById('inStoreCategory').value.trim();
-      const addr = document.getElementById('inStoreAddr').value.trim();
-      const hours = document.getElementById('inStoreHours').value.trim();
-      const services = document.getElementById('inStoreServices').value.trim();
 
-      if (!name || !addr || !services) {
-        alert('请完整填写店铺全称、地址及至少一项服务！');
+  <script>
+    let activeTab = 'shelf';
+
+    // 默认自营上架服务数据
+    let storeSkuList = [
+      { id: 's_01', name: '办公室肩颈解结推拿', duration: '45分钟', price: 78, desc: '精准辨证斜方肌劳损硬结，点按肩井穴深层松解' },
+      { id: 's_02', name: '全息督脉十二经络全身推拿', duration: '90分钟', price: 118, desc: '背部督脉循行滚法，全面调节气血运行改善疲乏' },
+      { id: 's_03', name: '天然植物精油全身芳香调理', duration: '60分钟', price: 138, desc: '进口单方精油轻柔抚触渗透，安抚中枢神经助眠' }
+    ];
+
+    function switchMerchantTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.m-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.dock-merchant-cell').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.module-panel').forEach(p => p.classList.remove('active'));
+
+      const btn = document.getElementById('tab_btn_' + tab);
+      if (btn) btn.classList.add('active');
+      const panel = document.getElementById('panel_' + tab);
+      if (panel) panel.classList.add('active');
+
+      const dockIndex = { shelf: 0, verify: 1, store: 2, ledger: 3 }[tab];
+      document.querySelectorAll('.dock-merchant-cell')[dockIndex]?.classList.add('active');
+
+      window.vgoDialog.vibrate(10);
+    }
+
+    function renderStoreSkuList() {
+      const box = document.getElementById('merchantSkuListContainer');
+      box.innerHTML = storeSkuList.map(sku => `
+        <div class="sku-list-item">
+          <div>
+            <div style="font-weight:900; font-size:13.5px;">${sku.name}</div>
+            <div style="font-size:11px; color:#64748B; margin-top:2px;">${sku.duration} · ${sku.desc}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:900; font-size:15px; color:#DC2626;">RM ${sku.price}</div>
+            <button class="btn-press" style="border:none; background:none; color:#94A3B8; font-size:11px; margin-top:4px;" onclick="removeSku('${sku.id}')">下架</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openAddSkuModal() {
+      document.getElementById('addSkuModalOverlay').classList.add('active');
+    }
+    function closeAddSkuModal() {
+      document.getElementById('addSkuModalOverlay').classList.remove('active');
+    }
+
+    function confirmAddSku() {
+      const title = document.getElementById('inNewSkuTitle').value.trim();
+      const dur = document.getElementById('inNewSkuDuration').value.trim();
+      const price = Number(document.getElementById('inNewSkuPrice').value);
+      const desc = document.getElementById('inNewSkuDesc').value.trim();
+
+      if (!title || !price) {
+        window.vgoDialog.toast('请填写项目名称与价格', 'warn');
         return;
       }
 
-      try {
-        const result = window.vgoMerchantSync.registerAndSyncStore({
-          name: name,
-          category: cat,
-          address: addr,
-          openTime: hours,
-          services: services
-        });
-        alert('✅ 恭喜！门店 [' + result.name + '] 资质已认证！\\n相关服务与价格已自动实时同步至 Vgo 顾客大厅。');
-        window.location.href = '../customer/index.html';
-      } catch (err) {
-        alert('同步失败: ' + err.message);
-      }
+      storeSkuList.unshift({
+        id: 's_' + Date.now(),
+        name: title,
+        duration: dur,
+        price: price,
+        desc: desc || '标准精细手艺规范'
+      });
+
+      renderStoreSkuList();
+      closeAddSkuModal();
+      window.vgoDialog.toast('🎉 项目已上架并实时同步至 Vgo 顾客大厅！');
+
+      // 清空输入框
+      document.getElementById('inNewSkuTitle').value = '';
+      document.getElementById('inNewSkuPrice').value = '';
+      document.getElementById('inNewSkuDesc').value = '';
     }
+
+    function removeSku(id) {
+      window.vgoDialog.confirm('确认下架该服务？', '下架后该项目将不再在顾客大厅展示。', { confirmBg: '#DC2626' }).then(ok => {
+        if (ok) {
+          storeSkuList = storeSkuList.filter(s => s.id !== id);
+          renderStoreSkuList();
+          window.vgoDialog.toast('服务已下架');
+        }
+      });
+    }
+
+    // 扫码与核销交互
+    function simulateCameraScanner() {
+      window.vgoDialog.toast('已调起光学摄像头扫描仪...');
+      setTimeout(() => {
+        document.getElementById('storeVerifyInput').value = '882199';
+        window.vgoDialog.toast('扫描成功！已自动填入核销码 882199');
+      }, 700);
+    }
+
+    async function executeMerchantVerify() {
+      const code = document.getElementById('storeVerifyInput').value.trim();
+      if (code.length !== 6) {
+        window.vgoDialog.toast('请输入完整的 6 位顾客核销码', 'warn');
+        return;
+      }
+
+      await window.vgoDialog.showModalAlert(
+        '核销成功！',
+        `<strong>订单编号: VG-2026-9182</strong><br>项目: 办公室肩颈深层解结 (45分钟)<br>客户姓名: 陈雅文<br>实收金额: <span style="color:#10B981; font-weight:900;">RM 78.00</span><br><br>款项已结算至今日待提现账单。`,
+        { iconClass: 'fas fa-badge-check', btnBg: '#0D9488' }
+      );
+
+      document.getElementById('storeVerifyInput').value = '';
+      document.getElementById('metricOrdersCount').innerText = '13 单';
+      document.getElementById('metricPendingCount').innerText = '2 单';
+    }
+
+    function saveStoreSettings() {
+      const name = document.getElementById('storeFormName').value.trim();
+      const addr = document.getElementById('storeFormAddr').value.trim();
+      const hours = document.getElementById('storeFormHours').value.trim();
+
+      document.getElementById('txtStoreNameHeader').innerText = name;
+      window.vgoDialog.toast('门店资料已保存，实景相册已同步至顾客端！');
+    }
+
+    window.onload = () => {
+      renderStoreSkuList();
+    };
   </script>
 </body>
 </html>
