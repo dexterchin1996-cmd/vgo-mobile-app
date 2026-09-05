@@ -284,3 +284,74 @@ window.vgoCatalog = {
     }
   ]
 };
+
+// 五、Airbnb 民宿/短租房东专属 30 分钟急速救援专区
+window.vgoCatalog.airbnbHost = [
+  {
+    id: 'ab_lock',
+    category: 'airbnbHost',
+    name: '【民宿房东专线】智能锁没电 / 密码锁死急速开锁',
+    artisanTitle: '公安与锁具协会持证开锁师',
+    badge: '20分急救',
+    image: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=600&auto=format&fit=crop&q=80',
+    artisanAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+    artisanName: '林工 (锁具特约技工)',
+    experience: '公安备案开锁 · 1,200+ 开锁记录',
+    basePriceMY: 120,
+    basePriceSG: 85,
+    duration: '20分钟急达',
+    desc: '房客深更半夜进不去房间？师傅自带高容量应急供电电源及无损锁芯快拆配件，解决开门危机并拍照回传房东。',
+    targetAudience: '亚庇/新加坡短租民宿主、海外不在当地的业主',
+    sop: ['核验房东授权及门牌信息', '外接双向电源激活锁板', '无损技术性开启门锁', '更换应急原装电池并拍照'],
+    mode: '工程师紧急上门'
+  },
+  {
+    id: 'ab_aircon',
+    category: 'airbnbHost',
+    name: '【民宿房东专线】房客入住突发空调滴水 / 不冷排障',
+    artisanTitle: '冷气空调急修专家',
+    badge: '30分急救',
+    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=600&auto=format&fit=crop&q=80',
+    artisanAvatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
+    artisanName: '黄师傅 (冷气高级工程师)',
+    experience: '大金/松下暖通资质 · 专治突发故障',
+    basePriceMY: 95,
+    basePriceSG: 70,
+    duration: '30分钟急达',
+    desc: '避免房客因太热退房给差评！30分钟带齐工具疏通冷凝管、检测电容与冷媒漏点，让房间急速恢复制冷。',
+    targetAudience: '民宿房东、长短租包租客',
+    sop: ['高压负压泵疏通排水暗管', '红外热像仪测定出风温差', '排除漏水隐患', '将工况照片实时回传房东微信/WhatsApp'],
+    mode: '工程师紧急上门'
+  }
+];
+
+// 六、手艺人端官方耗材物料集采商城 (批发低价 · 正品溯源)
+window.vgoCatalog.artisanStore = [
+  {
+    skuId: 'mat_01',
+    name: 'Vgo 认证纯植物单方老姜生姜温阳精油 (500ml 院装)',
+    price: 38.00,
+    unit: '瓶',
+    category: '理疗耗材',
+    image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=200&auto=format&fit=crop&q=80',
+    desc: '高纯度CO2超临界萃取，发热温通经络，通过 SGS 皮肤无敏认证。'
+  },
+  {
+    skuId: 'mat_02',
+    name: '医用级加厚无纺布一次性隔脏透气床单 (50张/卷)',
+    price: 26.00,
+    unit: '卷',
+    category: '卫生标配',
+    image: 'https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=200&auto=format&fit=crop&q=80',
+    desc: '防水防油双层覆膜，上门理疗与洗护必备，杜绝交叉感染。'
+  },
+  {
+    skuId: 'mat_03',
+    name: '原厂 PPR 加厚抗菌冷热热熔水管总成接头套装 (10件套)',
+    price: 32.00,
+    unit: '套',
+    category: '水工配件',
+    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&auto=format&fit=crop&q=80',
+    desc: '耐压 2.5MPa，德国标准黄铜嵌件，提供 10 年官方质保。'
+  }
+];
