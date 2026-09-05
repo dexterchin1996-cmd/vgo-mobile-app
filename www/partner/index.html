@@ -3,66 +3,382 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Vgo Partner - 手艺人兼职接单中枢</title>
+  <title>Vgo Partner - 工程师与手艺人兼职接单工作台</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../assets/css/design-system.css">
   <style>
-    body { background: #0F172A; color: #F8FAFC; }
-    .partner-top {
-      padding: 14px 16px; background: rgba(30, 41, 59, 0.95);
-      display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid #334155; position: sticky; top: 0; z-index: 50;
+    /* 手艺人端采用耐脏、省电的高对比暗色主题 (Dark Ergonomic Mode) */
+    body {
+      background: #090D16; color: #F8FAFC;
+      padding-bottom: calc(75px + var(--safe-bottom));
+      user-select: none;
     }
-    .skill-switch-bar {
+
+    /* 顶部手艺人工作条 */
+    .partner-topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px);
+      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #1E293B;
+    }
+    .artisan-profile-badge {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .artisan-avatar-frame {
+      width: 42px; height: 42px; border-radius: 50%;
+      border: 2px solid #0D9488; object-fit: cover;
+    }
+    .online-toggle-pill {
+      min-height: 36px; padding: 0 14px; border-radius: var(--radius-full);
+      border: 1px solid #334155; background: #1E293B;
+      color: #10B981; font-size: 12px; font-weight: 800;
+      display: flex; align-items: center; gap: 6px; cursor: pointer;
+    }
+    .online-toggle-pill.offline { color: #94A3B8; }
+
+    /* 多技能工种挂载滑动条 */
+    .skills-mount-strip {
       display: flex; gap: 8px; overflow-x: auto; padding: 12px 16px; scrollbar-width: none;
     }
-    .skill-role-chip {
-      padding: 6px 14px; border-radius: 20px; background: #1E293B; border: 1px solid #334155;
-      font-size: 11.5px; font-weight: 700; color: #94A3B8; cursor: pointer; flex-shrink: 0;
+    .skills-mount-strip::-webkit-scrollbar { display: none; }
+    .skill-chip-btn {
+      flex-shrink: 0; padding: 7px 14px; border-radius: 20px; background: #1E293B;
+      border: 1px solid #334155; font-size: 11.5px; font-weight: 800; color: #94A3B8;
+      cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;
     }
-    .skill-role-chip.active { background: #0D9488; color: #fff; border-color: #0D9488; }
-    .wallet-card {
-      margin: 10px 16px; background: linear-gradient(135deg, #1E293B, #0F172A);
-      border: 1px solid #334155; border-radius: 18px; padding: 18px;
+    .skill-chip-btn.active { background: #0D9488; color: #fff; border-color: #0D9488; }
+
+    /* 今日收益看板 */
+    .wallet-hero-box {
+      margin: 4px 16px 12px;
+      background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+      border: 1.5px solid #334155; border-radius: 20px; padding: 18px;
       display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     }
-    .job-notice-card {
-      margin: 12px 16px; background: #1E293B; border: 1.5px solid #0D9488;
-      border-radius: 16px; padding: 16px; box-shadow: 0 4px 16px rgba(13, 148, 136, 0.15);
+    .wallet-num-large { font-size: 26px; font-weight: 900; color: #10B981; margin-top: 4px; }
+    .btn-withdraw-action {
+      background: #0D9488; color: #fff; border: none; padding: 9px 16px;
+      border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer;
     }
+
+    /* 智能听单雷达区 */
+    .radar-banner-card {
+      margin: 0 16px 14px; background: #131C2E; border: 1px solid #1E293B;
+      border-radius: 18px; padding: 18px; text-align: center; position: relative;
+      overflow: hidden;
+    }
+    .radar-pulse-anim {
+      width: 64px; height: 64px; border-radius: 50%; background: rgba(13, 148, 136, 0.15);
+      border: 2px solid #0D9488; margin: 0 auto 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 24px; color: #0D9488;
+      animation: radarPulse 2s infinite ease-out;
+    }
+    @keyframes radarPulse {
+      0% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.4); }
+      70% { transform: scale(1.08); box-shadow: 0 0 0 14px rgba(13, 148, 136, 0); }
+      100% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(13, 148, 136, 0); }
+    }
+
+    /* 待抢急修/服务工单卡片 */
+    .order-dispatch-card {
+      margin: 0 16px 14px; background: #1E293B; border: 1.5px solid #0D9488;
+      border-radius: 20px; padding: 16px; box-shadow: 0 6px 20px rgba(13, 148, 136, 0.2);
+      animation: cardSlideIn 0.3s ease-out;
+    }
+    @keyframes cardSlideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .order-tag-strip { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .badge-urgent-tag {
+      font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 6px;
+      background: #EA580C; color: #fff;
+    }
+
+    /* 拍照存证容器 */
+    .evidence-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0;
+    }
+    .evidence-slot {
+      height: 100px; border-radius: 12px; background: #0F172A;
+      border: 1.5px dashed #334155; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; cursor: pointer; color: #94A3B8;
+      font-size: 11px; overflow: hidden; position: relative;
+    }
+    .evidence-slot img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* 底部专属大拇指导航 */
+    .partner-dock-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: calc(56px + var(--safe-bottom));
+      padding-bottom: var(--safe-bottom); background: rgba(15, 23, 42, 0.98);
+      backdrop-filter: blur(16px); display: flex; border-top: 1px solid #1E293B; z-index: 120;
+    }
+    .dock-cell {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #64748B; font-size: 10px; font-weight: 700; cursor: pointer; gap: 3px;
+    }
+    .dock-cell.active { color: #0D9488; }
   </style>
 </head>
 <body>
-  <div class="partner-top">
-    <div style="font-size: 15px; font-weight: 800;"><i class="fas fa-id-badge" style="color: #0D9488;"></i> 手艺人工作台 · 兼职接单端</div>
-    <span style="color: #10B981; font-weight: 800; font-size: 12px;">● 听单就绪中</span>
-  </div>
 
-  <!-- 手艺人自由切换工种 (一人多技能接单) -->
-  <div class="skill-switch-bar">
-    <div class="skill-role-chip active">💆 按摩理疗师</div>
-    <div class="skill-role-chip">💅 美容美睫师</div>
-    <div class="skill-role-chip">🐾 宠物美容师</div>
-    <div class="skill-role-chip">🔧 水电快修师</div>
-  </div>
-
-  <!-- 额外收入钱包与提现 -->
-  <div class="wallet-card">
-    <div>
-      <div style="font-size: 11px; color: #94A3B8;">本周兼职额外收益</div>
-      <div style="font-size: 22px; font-weight: 900; color: #10B981; margin-top: 4px;">RM 648.50</div>
+  <!-- 顶部状态栏 -->
+  <header class="partner-topbar">
+    <div class="artisan-profile-badge">
+      <img class="artisan-avatar-frame" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80" alt="Avatar">
+      <div>
+        <div style="font-size: 14px; font-weight: 900; display: flex; align-items: center; gap: 4px;">
+          <span>Lisa / 陈工</span> <i class="fas fa-circle-check" style="color: #0D9488; font-size: 12px;"></i>
+        </div>
+        <div style="font-size: 10px; color: #94A3B8;">已通过金牌认证 · 综合评分 4.98</div>
+      </div>
     </div>
-    <button style="border:none; background:#0D9488; color:#fff; padding:8px 16px; border-radius:12px; font-weight:800; font-size:12px;" onclick="alert('提现已发起至绑定的 DuitNow / 银行账户')">立即提现</button>
+    <div class="online-toggle-pill btn-press" id="statusPill" onclick="toggleOnlineState()">
+      <i class="fas fa-circle" style="font-size: 8px;"></i>
+      <span id="statusText">正在听单</span>
+    </div>
+  </header>
+
+  <!-- 多技能工种兼职切换条 (一人多技能变现) -->
+  <div class="skills-mount-strip">
+    <div class="skill-chip-btn active" id="chip_m" onclick="switchArtisanSkill('m')"><i class="fas fa-spa"></i> 按摩理疗师</div>
+    <div class="skill-chip-btn" id="chip_b" onclick="switchArtisanSkill('b')"><i class="fas fa-wand-magic-sparkles"></i> 美容美睫师</div>
+    <div class="skill-chip-btn" id="chip_p" onclick="switchArtisanSkill('p')"><i class="fas fa-paw"></i> 宠物美容师</div>
+    <div class="skill-chip-btn" id="chip_h" onclick="switchArtisanSkill('h')"><i class="fas fa-wrench"></i> 水电急修师</div>
   </div>
 
-  <div style="padding: 0 16px; font-size: 13px; font-weight: 800; color: #94A3B8; margin-top: 10px;">平台实时派发就近工单</div>
-
-  <div class="job-notice-card">
-    <span style="background: #0D9488; color: #fff; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px;">经络推拿 · 上门单</span>
-    <div style="font-size: 15px; font-weight: 900; margin-top: 8px;">中式经络穴位推拿 60分钟</div>
-    <div style="font-size: 12px; color: #94A3B8; margin: 6px 0;">📍 亚庇市中心 滨海公寓 · 距离您 1.5 km</div>
-    <div style="font-size: 16px; font-weight: 900; color: #F87171;">预计到手收益: RM 88.00</div>
-    <button style="width:100%; padding:14px; border:none; border-radius:12px; background:#0D9488; color:#fff; font-weight:900; font-size:15px; margin-top:10px; cursor:pointer;" onclick="alert('🎉 抢单成功！请准时联系客户并前往履约。')">立即抢单</button>
+  <!-- 今日收益看板与极速提现 -->
+  <div class="wallet-hero-box">
+    <div>
+      <div style="font-size: 11px; color: #94A3B8;">本周兼职净到手收益</div>
+      <div class="wallet-num-large" id="txtWeekEarnings">RM 842.60</div>
+      <div style="font-size: 10px; color: #64748B; margin-top: 2px;">平台费率：已扣除 15% · DuitNow 直通</div>
+    </div>
+    <button class="btn-withdraw-action btn-press" onclick="triggerWithdraw()">极速提现</button>
   </div>
+
+  <!-- 智能听单雷达区 -->
+  <div class="radar-banner-card">
+    <div class="radar-pulse-anim"><i class="fas fa-tower-broadcast"></i></div>
+    <div style="font-size: 15px; font-weight: 900;" id="radarStatusTitle">智能派单雷达持续扫描中...</div>
+    <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">覆盖半径：沙巴·亚庇滨海核心区 (5.0 km)</div>
+    <div style="display: flex; justify-content: center; gap: 8px; margin-top: 10px;">
+      <button class="btn-press" style="background:#1E293B; border:1px solid #334155; color:#fff; padding:5px 12px; border-radius:12px; font-size:11px;" onclick="simulateIncomingJob()">
+        <i class="fas fa-bell"></i> 模拟新订单推送到来
+      </button>
+    </div>
+  </div>
+
+  <!-- 待抢实时工单流 -->
+  <div style="padding: 0 16px 8px; font-size: 13px; font-weight: 800; color: #94A3B8; display:flex; justify-content:space-between;">
+    <span>实时派发工单 (智能就近撮合)</span>
+    <span style="color: #0D9488; font-size: 11px;">自动刷新中 ●</span>
+  </div>
+
+  <div id="jobStreamContainer">
+    <!-- 默认展示一单待抢急救工单 -->
+    <div class="order-dispatch-card" id="card_demo_1">
+      <div class="order-tag-strip">
+        <span class="badge-urgent-tag"><i class="fas fa-bolt"></i> 24H 突发急修</span>
+        <span style="font-size: 11px; color: #F59E0B; font-weight: 800;"><i class="fas fa-clock"></i> 30分钟急达承诺</span>
+      </div>
+      <div style="font-size: 16px; font-weight: 900;">墙体暗管爆裂 / 水管漏水急性抢修</div>
+      <div style="font-size: 11.5px; color: #94A3B8; margin: 6px 0;">
+        <i class="fas fa-location-dot" style="color: #0D9488;"></i> 亚庇滨海大道 商业综合体 3 楼 · <strong>距您 1.2 km</strong>
+      </div>
+      <div style="background: #131C2E; border-radius: 10px; padding: 8px 10px; font-size: 11px; color: #CBD5E1; margin-bottom: 10px;">
+        客户备注：洗手间主管破损漏水严重，需带 PPR 热熔机与管件上门。
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline;">
+        <div>
+          <span style="font-size: 10.5px; color: #94A3B8;">预计净到手:</span>
+          <span style="font-size: 18px; font-weight: 900; color: #F87171;">RM 86.40</span>
+        </div>
+        <button class="btn-press" style="background:#0D9488; color:#fff; border:none; padding:10px 22px; border-radius:12px; font-weight:900; font-size:14px;" onclick="acceptJobFlow('VG-8821', '墙体暗管爆裂急性抢修', 86.4)">
+          即刻抢单
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部固定大拇指导航栏 -->
+  <nav class="partner-dock-nav">
+    <div class="dock-cell active" onclick="window.vgoDialog.toast('已在接单工作台大厅')"><i class="fas fa-clipboard-list" style="font-size:18px;"></i><span>接单大厅</span></div>
+    <div class="dock-cell" onclick="openCurrentExecutionModal()"><i class="fas fa-route" style="font-size:18px;"></i><span>履约导航</span></div>
+    <div class="dock-cell" onclick="openSafetyShield()"><i class="fas fa-shield-heart" style="font-size:18px;"></i><span>安全求助</span></div>
+    <div class="dock-cell" onclick="triggerWithdraw()"><i class="fas fa-wallet" style="font-size:18px;"></i><span>兼职钱包</span></div>
+  </nav>
+
+  <!-- ======================================================== -->
+  <!-- 履约防纠纷 SOP 模态弹窗 (签到、导航、拍照存证、核销) -->
+  <!-- ======================================================== -->
+  <div id="executionModalOverlay" class="center-modal-scrim">
+    <div class="center-modal-box" style="background:#1E293B; color:#F8FAFC; padding:20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="font-size: 17px; font-weight: 900; color: #0D9488;"><i class="fas fa-toolbox"></i> 现场履约防纠纷工作台</h3>
+        <button onclick="closeExecutionModal()" style="border:none; background:none; font-size: 24px; color:#94A3B8; cursor:pointer;">&times;</button>
+      </div>
+
+      <div style="background: #131C2E; border: 1px solid #334155; border-radius: 14px; padding: 12px; margin-bottom: 12px;">
+        <div style="font-size: 13.5px; font-weight: 900;" id="execJobTitle">暗管爆裂漏水急修</div>
+        <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">工单号：<span id="execJobId">VG-8821</span> | 客户：Mr. Kevin 0128172166</div>
+      </div>
+
+      <!-- 唤起高精度导航 -->
+      <button class="btn-press" style="width: 100%; min-height: 44px; border: 1px solid #0D9488; background: rgba(13, 148, 136, 0.15); color: #0D9488; border-radius: 12px; font-weight: 800; font-size: 13px; margin-bottom: 14px;" onclick="openNativeMapNavigation()">
+        <i class="fas fa-location-arrow"></i> 唤起原生地图路线导航 (Waze / Google Maps)
+      </button>
+
+      <div style="font-size: 12px; font-weight: 800; color: #CBD5E1; margin-bottom: 6px;">防纠纷拍照存证 SOP：</div>
+      <div class="evidence-grid">
+        <div class="evidence-slot" id="slotBefore" onclick="takeEvidencePhoto('before')">
+          <i class="fas fa-camera" style="font-size: 20px; margin-bottom: 4px;"></i>
+          <span>施工/服务前拍照</span>
+        </div>
+        <div class="evidence-slot" id="slotAfter" onclick="takeEvidencePhoto('after')">
+          <i class="fas fa-camera" style="font-size: 20px; margin-bottom: 4px;"></i>
+          <span>完工/服务后拍照</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="font-size: 11.5px; color: #94A3B8; display: block; margin-bottom: 4px;">输入客户出示的 6 位电子核销码：</label>
+        <input type="text" id="inputVerifyCode" maxlength="6" style="width: 100%; min-height: 46px; background: #0F172A; border: 1.5px solid #334155; border-radius: 12px; color: #fff; font-size: 18px; text-align: center; letter-spacing: 6px; outline: none;" placeholder="••••••">
+      </div>
+
+      <button class="btn-press" style="width: 100%; min-height: 50px; background: #0D9488; border: none; border-radius: 14px; color: #fff; font-weight: 900; font-size: 15px;" onclick="completeJobAndCashout()">
+        核销完工 · 收益即刻入账
+      </button>
+    </div>
+  </div>
+
+  <!-- 引入通用组件库 -->
+  <script src="../core/dialogEngine.js"></script>
+  <script src="../core/soundAlert.js"></script>
+
+  <script>
+    let isOnline = true;
+    let currentJobContext = null;
+
+    function toggleOnlineState() {
+      isOnline = !isOnline;
+      const pill = document.getElementById('statusPill');
+      const text = document.getElementById('statusText');
+      const radarTitle = document.getElementById('radarStatusTitle');
+
+      if (isOnline) {
+        pill.className = 'online-toggle-pill btn-press';
+        text.innerText = '正在听单';
+        radarTitle.innerText = '智能派单雷达持续扫描中...';
+        window.vgoDialog.toast('已开启听单，您可实时接收全城派单');
+      } else {
+        pill.className = 'online-toggle-pill offline btn-press';
+        text.innerText = '已暂停听单';
+        radarTitle.innerText = '已暂停听单雷达 (休息中)';
+        window.vgoDialog.toast('已收工停止听单，暂不接收新派单', 'warn');
+      }
+    }
+
+    function switchArtisanSkill(skill) {
+      document.querySelectorAll('.skill-chip-btn').forEach(b => b.classList.remove('active'));
+      const chip = document.getElementById('chip_' + skill);
+      if (chip) chip.classList.add('active');
+      window.vgoDialog.toast('已切换当前主接工种');
+    }
+
+    // 模拟新工单到达 (触发物理音频警报 + 强震动)
+    function simulateIncomingJob() {
+      if (!isOnline) {
+        window.vgoDialog.toast('请先开启听单状态！', 'warn');
+        return;
+      }
+      window.vgoSound.playNewOrderBeep();
+      window.vgoDialog.toast('收到新派单！请在 60 秒内响应', 'warn');
+    }
+
+    async function acceptJobFlow(id, title, payout) {
+      if (!isOnline) {
+        window.vgoDialog.toast('请先开启听单状态！', 'warn');
+        return;
+      }
+
+      const confirmed = await window.vgoDialog.confirm(
+        '确认抢下该工单？',
+        `项目：<strong>${title}</strong><br>预计到手净收入：<span style="color:#10B981; font-weight:900;">RM ${payout.toFixed(2)}</span><br>请务必在 30 分钟内抵达客户现场。`,
+        { confirmText: '立即接单出发', cancelText: '稍后再看' }
+      );
+
+      if (!confirmed) return;
+
+      currentJobContext = { id, title, payout, status: 'ACCEPTED' };
+      window.vgoDialog.toast('🎉 抢单成功！已启动履约防纠纷工作台');
+      openCurrentExecutionModal();
+    }
+
+    function openCurrentExecutionModal() {
+      if (!currentJobContext) {
+        window.vgoDialog.toast('当前暂无正在履约中的工单', 'info');
+        return;
+      }
+      document.getElementById('execJobTitle').innerText = currentJobContext.title;
+      document.getElementById('execJobId').innerText = currentJobContext.id;
+      document.getElementById('executionModalOverlay').classList.add('active');
+    }
+
+    function closeExecutionModal() {
+      document.getElementById('executionModalOverlay').classList.remove('active');
+    }
+
+    // 唤起原生导航
+    function openNativeMapNavigation() {
+      window.vgoDialog.toast('正在唤起原生 GPS 地图导航...');
+      setTimeout(() => {
+        window.location.href = 'https://maps.google.com/?q=Kota+Kinabalu+City+Center';
+      }, 500);
+    }
+
+    // 拍照存证模拟
+    function takeEvidencePhoto(type) {
+      const slot = document.getElementById(type === 'before' ? 'slotBefore' : 'slotAfter');
+      slot.innerHTML = `<img src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&auto=format&fit=crop&q=80"><span style="position:absolute; bottom:4px; font-size:9px; background:rgba(0,0,0,0.7); padding:1px 5px; border-radius:4px;">已存证 (含时间水印)</span>`;
+      window.vgoDialog.toast(`已完成${type === 'before' ? '施工前' : '完工后'}拍照存证`);
+    }
+
+    // 核销完工入账
+    async function completeJobAndCashout() {
+      const code = document.getElementById('inputVerifyCode').value.trim();
+      if (code.length !== 6) {
+        window.vgoDialog.toast('请输入完整的 6 位客户核销码', 'warn');
+        return;
+      }
+
+      await window.vgoDialog.alert(
+        '工单完工核销成功！',
+        `恭喜！工单 [${currentJobContext.id}] 履约验收完成。<br>净佣金 <strong style="color:#10B981;">RM ${currentJobContext.payout.toFixed(2)}</strong> 已实时注入您的兼职钱包！`,
+        { iconClass: 'fas fa-sack-dollar', btnBg: '#0D9488' }
+      );
+
+      closeExecutionModal();
+      currentJobContext = null;
+      document.getElementById('txtWeekEarnings').innerText = 'RM 929.00';
+    }
+
+    function triggerWithdraw() {
+      window.vgoDialog.confirm(
+        '申请兼职收益极速提现',
+        '当前可提现净收益：<strong>RM 842.60</strong><br>提现将通过国家结算中心 DuitNow 直达您绑定的银行户口。',
+        { confirmText: '申请提现', cancelText: '暂不提现', confirmBg: '#10B981' }
+      ).then(ok => {
+        if (ok) window.vgoDialog.toast('提现申请已受理，预计 5 分钟内到账银行卡');
+      });
+    }
+
+    function openSafetyShield() {
+      window.vgoDialog.alert(
+        'Vgo 手艺人行车与人身安全盾',
+        '• 每次履约均享有保额高达 RM 100,000 的职业意外险<br>• 遇到紧急纠纷或人身危险，请长按下方 SOS 联动平台调度<br><br><strong>紧急安全专线：01172691788</strong>',
+        { iconClass: 'fas fa-shield-halved', iconColor: '#EA580C', iconBg: '#FFEDD5', btnBg: '#EA580C' }
+      );
+    }
+  </script>
 </body>
 </html>
