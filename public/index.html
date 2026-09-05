@@ -16,22 +16,36 @@
       padding: 2px 8px; border-radius: 6px; font-size: 10.5px; cursor: pointer;
     }
     .util-btn.active { border-color: #0D9488; color: #2DD4BF; font-weight: 800; }
-    .airbnb-rescue-strip {
-      margin: 10px 16px 6px; border-radius: 16px;
-      background: linear-gradient(135deg, #FF385C 0%, #E00B41 100%);
-      padding: 12px 16px; color: #fff; display: flex; align-items: center;
-      justify-content: space-between; cursor: pointer;
+    
+    /* 订阅套餐专区横向卡片流 */
+    .sub-plans-strip {
+      display: flex; gap: 10px; overflow-x: auto; padding: 4px 16px 12px; scrollbar-width: none;
     }
+    .sub-plans-strip::-webkit-scrollbar { display: none; }
+    .sub-plan-card {
+      flex: 0 0 260px; background: linear-gradient(135deg, #0F172A, #1E293B);
+      border: 1.5px solid #334155; border-radius: 18px; padding: 14px; color: #fff;
+      display: flex; flex-direction: column; justify-content: space-between; position: relative;
+    }
+    .sub-plan-badge {
+      position: absolute; top: 12px; right: 12px; background: #F59E0B; color: #0F172A;
+      font-size: 10px; font-weight: 900; padding: 2px 7px; border-radius: 6px;
+    }
+
+    /* 进门前贵重物品防盗免责卡 */
+    .pre-entry-waiver-box {
+      background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: 14px;
+      padding: 12px; margin: 10px 0; font-size: 11.5px; line-height: 1.5; color: #92400E;
+    }
+
     .ladies-card {
       margin: 6px 16px 10px; background: #FDF2F8; border: 1.5px solid #FBCFE8;
       border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;
     }
-    .receipt-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; }
   </style>
 </head>
 <body>
 
-  <!-- 顶部多语言与市场栏 -->
   <div class="util-topbar">
     <div style="display:flex; gap:6px; align-items:center;">
       <i class="fas fa-globe" style="color:#0D9488;"></i>
@@ -45,12 +59,11 @@
     </div>
   </div>
 
-  <!-- 主品牌状态栏 -->
   <header style="background:rgba(255,255,255,0.96); backdrop-filter:blur(12px); padding:10px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--color-border); position:sticky; top:0; z-index:90;">
     <div style="display:flex; align-items:center; gap:10px;">
       <div style="width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg, #F59E0B 10%, #0D9488 50%, #0284C7 90%); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:22px;">V</div>
       <div>
-        <h1 style="font-size:16px; font-weight:900;" id="appTitle">Vgo 平台</h1>
+        <h1 style="font-size:16px; font-weight:900;">Vgo 平台</h1>
         <div style="font-size:10.5px; color:#64748B;"><i class="fas fa-location-dot" style="color:#0D9488;"></i> <span id="locHeader">沙巴·亚庇 (Kota Kinabalu)</span></div>
       </div>
     </div>
@@ -64,31 +77,24 @@
     </div>
   </header>
 
-  <!-- Airbnb 民宿房东专线 -->
-  <div class="airbnb-rescue-strip btn-press" onclick="openAirbnbHostPass()">
-    <div style="display:flex; align-items:center; gap:10px;">
-      <i class="fab fa-airbnb" style="font-size:24px;"></i>
-      <div>
-        <div style="font-size:13px; font-weight:900;" id="txtAirbnbTitle">Airbnb 民宿房东 30分急救专线</div>
-        <div style="font-size:10px; opacity:0.92;" id="txtAirbnbDesc">智能锁断电 / 水管爆裂 / 空调不冷 · 线上全托管救援</div>
-      </div>
-    </div>
-    <i class="fas fa-chevron-right" style="font-size:13px;"></i>
+  <div style="padding: 10px 16px 4px; display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-size:13px; font-weight:900; color:#0F172A;"><i class="fas fa-repeat" style="color:#0D9488;"></i> 尊享定期维保订阅计划 (包月/包年)</span>
+    <span style="font-size:10.5px; color:#0D9488; font-weight:700;">省时立减 35%</span>
   </div>
+  <div class="sub-plans-strip" id="subscriptionStrip">
+    </div>
 
-  <!-- 女性专属安全约选开关 -->
   <div class="ladies-card">
     <div style="display:flex; align-items:center; gap:8px;">
       <i class="fas fa-female" style="font-size:22px; color:#DB2777;"></i>
       <div>
-        <div style="font-size:12.5px; font-weight:800; color:#831843;" id="txtLadiesTitle">全女专属安全约选</div>
-        <div style="font-size:10px; color:#9D174D;" id="txtLadiesDesc">独居女性安心保障，仅指派通过严格实名无犯罪背调的女手艺人</div>
+        <div style="font-size:12.5px; font-weight:800; color:#831843;">全女专属安全约选</div>
+        <div style="font-size:10px; color:#9D174D;">独居女性安心保障，仅指派通过严格实名无犯罪背调的女手艺人</div>
       </div>
     </div>
     <input type="checkbox" id="ladiesToggle" style="width:20px; height:20px; accent-color:#DB2777; cursor:pointer;" onchange="toggleLadiesSafeMatch(this)">
   </div>
 
-  <!-- 双模导航：手艺人 vs 实体商户 -->
   <div style="display:flex; margin:4px 16px 8px; background:#E2E8F0; padding:3px; border-radius:14px;">
     <button class="btn-press" style="flex:1; padding:9px; border:none; border-radius:11px; background:#fff; font-size:13px; font-weight:800;" id="tabBtnArtisans" onclick="switchCustomerTab('artisans')">
       <i class="fas fa-user-check"></i> 精选手艺人 (上门/预约)
@@ -98,7 +104,6 @@
     </button>
   </div>
 
-  <!-- 四大工种类目条 -->
   <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; padding:4px 16px 10px;" id="skillStrip">
     <div class="cat-btn active" id="cbtn_massage" onclick="selectCategory('massage')">
       <div style="width:36px; height:36px; border-radius:50%; background:#CCFBF1; color:#0D9488; display:flex; align-items:center; justify-content:center; font-size:16px; margin-bottom:4px;"><i class="fas fa-spa"></i></div>
@@ -118,45 +123,15 @@
     </div>
   </div>
 
-  <!-- 服务网格瀑布流 -->
   <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; padding:0 16px;" id="mainGridContainer"></div>
 
-  <!-- 底部固定大拇指导航栏 -->
   <nav style="position:fixed; bottom:0; left:0; right:0; height:calc(56px + var(--safe-bottom)); padding-bottom:var(--safe-bottom); background:rgba(255,255,255,0.98); backdrop-filter:blur(16px); display:flex; border-top:1px solid var(--color-border); z-index:120;">
     <div class="dock-cell active" onclick="window.vgoDialog.toast('已在服务大厅')"><i class="fas fa-compass" style="font-size:18px;"></i><span>服务大厅</span></div>
-    <div class="dock-cell" onclick="window.vgoDialog.toast('暂无进行中的订单', 'info')"><i class="fas fa-clipboard-check" style="font-size:18px;"></i><span>履约订单</span></div>
+    <div class="dock-cell" onclick="openOrderTrackerModal()"><i class="fas fa-clipboard-check" style="font-size:18px;"></i><span>履约订单</span></div>
     <div class="dock-cell" onclick="triggerSafetySOS()"><i class="fas fa-shield-heart" style="font-size:18px; color:#DB2777;"></i><span>安全守护</span></div>
     <div class="dock-cell" onclick="openAuthModal()"><i class="fas fa-user-shield" style="font-size:18px;"></i><span>客户中心</span></div>
   </nav>
 
-  <!-- 模态框 1：SMS 验证码登录 / PDPA 授权 -->
-  <div id="authModalOverlay" class="center-modal-scrim">
-    <div class="center-modal-box" style="padding:22px; text-align:center;">
-      <div style="width:50px; height:50px; border-radius:50%; background:#CCFBF1; color:#0D9488; display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 10px;">
-        <i class="fas fa-mobile-screen-button"></i>
-      </div>
-      <h3 style="font-size:17px; font-weight:900;">手机验证码免密快捷登录</h3>
-      <p style="font-size:11.5px; color:#64748B; margin:4px 0 16px;">支持马来西亚 (+60) 与新加坡 (+65) 手机号，一人一号杜绝虚假</p>
-
-      <input type="tel" id="authPhoneInput" placeholder="输入手机号 (例: 0128172166)" style="width:100%; min-height:46px; padding:10px 14px; border:1.5px solid var(--color-border); border-radius:12px; font-size:14px; margin-bottom:10px; outline:none;">
-      
-      <div style="display:flex; gap:8px; margin-bottom:14px;">
-        <input type="text" id="authCodeInput" maxlength="6" placeholder="6位验证码" style="flex:1; min-height:46px; padding:10px 14px; border:1.5px solid var(--color-border); border-radius:12px; font-size:14px; text-align:center; letter-spacing:3px; outline:none;">
-        <button class="btn-press" id="btnSendOtp" style="background:#0D9488; color:#fff; border:none; padding:0 14px; border-radius:12px; font-size:12px; font-weight:800;" onclick="sendOtpAction()">获取验证码</button>
-      </div>
-
-      <div style="font-size:11px; color:#64748B; text-align:left; margin-bottom:14px; display:flex; align-items:flex-start; gap:6px;">
-        <input type="checkbox" id="chkPdpa" checked style="margin-top:2px; accent-color:#0D9488;">
-        <label for="chkPdpa">已阅读并同意《Vgo 用户服务协议》与新马《PDPA 个人资料隐私保护条例》，平台承诺双向隐私掩码脱敏。</label>
-      </div>
-
-      <button class="btn-press" style="width:100%; min-height:48px; background:#0F172A; color:#fff; border:none; border-radius:14px; font-weight:900; font-size:14.5px;" onclick="verifyOtpAction()">
-        同意协议并快捷登录
-      </button>
-    </div>
-  </div>
-
-  <!-- 模态框 2：配置工单 + 微保勾选 + GPS定位自动填入 -->
   <div id="configModalOverlay" class="center-modal-scrim">
     <div class="center-modal-box" style="padding:0 18px 20px;">
       <div class="drag-handle-zone"><div class="drag-indicator"></div></div>
@@ -167,62 +142,29 @@
 
       <div id="cfgOptionsMount"></div>
 
-      <!-- 微额履约意外保障险勾选卡片 (Allianz / Tune Protect) -->
-      <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:12px; padding:10px 12px; margin:10px 0; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <div style="font-size:12px; font-weight:900; color:#15803D;"><i class="fas fa-shield-halved"></i> 平台履约人身与财产安全保障金</div>
-          <div style="font-size:10px; color:#166534;">最高承保 RM 50,000 施工财产损坏与人身意外 (Allianz 联合承保)</div>
+      <div class="pre-entry-waiver-box">
+        <div style="font-weight:900; display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+          <i class="fas fa-vault"></i> 进门前安全与财物共识知情书
         </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <span style="font-size:12px; font-weight:900; color:#15803D;">+RM 1.00</span>
-          <input type="checkbox" id="chkInsurance" checked style="width:18px; height:18px; accent-color:#15803D;" onchange="refreshReceipt()">
+        <div>1. 请在手艺人上门前将贵重现金、首饰自行收纳入保险柜。</div>
+        <div>2. 阶梯取消政策：下单 5 分钟内免费取消；手艺人接单出发后取消将扣除 <strong>RM 15 / S$ 10</strong> 车马误工补偿款。</div>
+        <div style="margin-top:6px; display:flex; align-items:center; gap:6px; font-weight:800; color:#0F172A;">
+          <input type="checkbox" id="chkValuablesWaiver" checked style="accent-color:#D97706;">
+          <label for="chkValuablesWaiver">我已知悉阶梯取消费用并已妥善保管私人物品</label>
         </div>
       </div>
 
       <div style="background:#F8FAFC; border:1px solid var(--color-border); border-radius:14px; padding:12px; margin:10px 0;" id="cfgReceiptArea"></div>
 
-      <div style="margin-bottom:8px;">
-        <input type="tel" id="inputPhone" placeholder="您的联系电话 (例: 0128172166)" style="width:100%; min-height:44px; padding:10px 14px; border:1.5px solid var(--color-border); border-radius:12px; font-size:13.5px; outline:none;">
-      </div>
-      
-      <!-- 地址输入 + 一键 GPS 真机定位抓取 -->
-      <div style="position:relative; margin-bottom:14px;">
-        <input type="text" id="inputAddr" placeholder="现场详细作业地址 (或指定到店)" style="width:100%; min-height:44px; padding:10px 42px 10px 14px; border:1.5px solid var(--color-border); border-radius:12px; font-size:13.5px; outline:none;">
-        <button class="btn-press" style="position:absolute; right:8px; top:8px; border:none; background:#CCFBF1; color:#0D9488; width:30px; height:30px; border-radius:8px; cursor:pointer;" onclick="autoFillGPSLocation()" title="一键GPS定位">
-          <i class="fas fa-crosshairs"></i>
-        </button>
-      </div>
+      <input type="tel" id="inputPhone" placeholder="您的联系电话 (例: 0128172166)" style="width:100%; min-height:44px; padding:10px 14px; border:1.5px solid var(--color-border); border-radius:12px; font-size:13.5px; outline:none; margin-bottom:8px;">
+      <input type="text" id="inputAddr" placeholder="现场详细作业地址 (或指定到店)" style="width:100%; min-height:44px; padding:10px 14px; border:1.5px solid var(--color-border); border-radius:12px; font-size:13.5px; outline:none; margin-bottom:14px;">
 
       <button class="btn-press" style="width:100%; min-height:48px; background:#0D9488; color:#fff; border:none; border-radius:14px; font-weight:900; font-size:15px;" onclick="goToPaymentModal()">
-        下一步：生成 DuitNow 托管支付小票
+        签署共识并进入托管支付
       </button>
     </div>
   </div>
 
-  <!-- 模态框 3：DuitNow / PayNow 聚合支付与资金分账锁定 -->
-  <div id="paymentModalOverlay" class="center-modal-scrim">
-    <div class="center-modal-box" style="padding:22px; text-align:center;">
-      <h3 style="font-size:17px; font-weight:900;"><i class="fas fa-qrcode" style="color:#0D9488;"></i> 平台聚合资金托管支付</h3>
-      <p style="font-size:11px; color:#64748B; margin:4px 0 12px;">资金进入平台银行托管专户，手艺人完工并核销后释放佣金</p>
-
-      <div style="background:#fff; border:1.5px solid var(--color-border); border-radius:16px; padding:16px; display:inline-block; margin-bottom:12px;">
-        <img id="paymentQrImg" src="" style="width:180px; height:180px; display:block; margin:0 auto;">
-        <div style="font-size:11px; font-weight:800; color:#0F172A; margin-top:8px;">国家标准 DuitNow / PayNow 二维码</div>
-      </div>
-
-      <div style="background:#F8FAFC; border:1px solid var(--color-border); border-radius:12px; padding:10px 14px; text-align:left; font-size:11.5px; margin-bottom:14px;">
-        <div class="receipt-row"><span>应付托管总额：</span><strong style="color:#DC2626; font-size:14px;" id="payTotalNum">RM 0.00</strong></div>
-        <div class="receipt-row" style="color:#15803D;"><span>履约人身与财产险：</span><span>已投保 (Allianz)</span></div>
-        <div class="receipt-row" style="color:#64748B;"><span>资金分账机制：</span><span>85%手艺人 / 15%平台托管</span></div>
-      </div>
-
-      <button class="btn-press" style="width:100%; min-height:48px; background:#10B981; color:#fff; border:none; border-radius:14px; font-weight:900; font-size:14.5px;" onclick="confirmPaidAndDispatch()">
-        我已扫码支付 · 立即派发
-      </button>
-    </div>
-  </div>
-
-  <!-- 引入核心库 -->
   <script src="../core/dialogEngine.js"></script>
   <script src="../core/nativeBridge.js"></script>
   <script src="../core/authEngine.js"></script>
@@ -232,165 +174,92 @@
   <script src="../modules/merchantSyncEngine.js"></script>
   <script src="../modules/advancedSafety.js"></script>
   <script src="../modules/growthEngine.js"></script>
+  <script src="../modules/complianceRiskEngine.js"></script>
 
   <script>
     let currentRegion = 'MY';
     let currentMainMode = 'artisans';
     let currentSkillKey = 'massage';
     let selectedItem = null;
-    let pendingPaymentIntent = null;
 
-    function switchLang(lang) {
-      document.querySelectorAll('.util-btn').forEach(b => {
-        if (['btn_zh','btn_en','btn_ko'].includes(b.id)) b.classList.remove('active');
+    function renderSubscriptionPlans() {
+      const box = document.getElementById('subscriptionStrip');
+      const plans = window.vgoRisk.subscriptionPlans || [];
+      const cur = currentRegion === 'MY' ? 'RM' : 'S$';
+
+      box.innerHTML = plans.map(p => {
+        const price = currentRegion === 'MY' ? p.priceMY : p.priceSG;
+        return `
+          <div class="sub-plan-card">
+            <span class="sub-plan-badge">${p.badge}</span>
+            <div>
+              <div style="font-size:13.5px; font-weight:900; line-height:1.3; padding-right:50px;">${p.name}</div>
+              <div style="font-size:18px; font-weight:900; color:#10B981; margin:6px 0 8px;">${cur} ${price} <small style="font-size:11px; color:#94A3B8; font-weight:600;">/${p.cycle}</small></div>
+              <div style="font-size:10.5px; color:#CBD5E1; line-height:1.45;">
+                ${p.benefits.map(b => `<div>• ${b}</div>`).join('')}
+              </div>
+            </div>
+            <button class="btn-press" style="margin-top:10px; width:100%; padding:8px; border-radius:10px; background:#0D9488; color:#fff; border:none; font-weight:900; font-size:12px;" onclick="subscribePlanAction('${p.name}', '${cur} ${price}')">
+              立即签约开通
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function subscribePlanAction(planName, priceStr) {
+      window.vgoDialog.confirm(
+        '签约定期维保订阅',
+        `确认签约开通【${planName}】？<br>首期资费：<strong style="color:#10B981;">${priceStr}</strong><br>享优先极速派发与专职管家跟踪。`,
+        { confirmText: '立即开通', confirmBg: '#0D9488' }
+      ).then(ok => {
+        if (ok) window.vgoDialog.showModalAlert('签约成功！', `您已成功加入【${planName}】！会员权益与服务券已发放至您的账户包。`, { btnBg: '#0D9488' });
       });
-      document.getElementById('btn_' + lang).classList.add('active');
-      window.vgoDialog.toast(`Language changed to ${lang.toUpperCase()}`);
     }
 
     function switchRegion(region) {
       currentRegion = region;
-      const info = window.vgoPricing.setRegion(region);
+      window.vgoPricing.setRegion(region);
       document.getElementById('btnMY').classList.toggle('active', region === 'MY');
       document.getElementById('btnSG').classList.toggle('active', region === 'SG');
-      document.getElementById('locHeader').innerText = info.city;
+      renderSubscriptionPlans();
       renderMainGrid();
-      window.vgoDialog.toast(`已切换至 ${info.city}`);
-    }
-
-    function toggleLadiesSafeMatch(chk) {
-      window.vgoSafety.toggleLadiesOnly(chk.checked);
-      renderMainGrid();
-    }
-
-    function switchCustomerTab(mode) {
-      currentMainMode = mode;
-      document.getElementById('tabBtnArtisans').style.background = mode === 'artisans' ? '#fff' : 'transparent';
-      document.getElementById('tabBtnArtisans').style.color = mode === 'artisans' ? '#0F172A' : '#64748B';
-      document.getElementById('tabBtnMerchants').style.background = mode === 'merchants' ? '#fff' : 'transparent';
-      document.getElementById('tabBtnMerchants').style.color = mode === 'merchants' ? '#0F172A' : '#64748B';
-      document.getElementById('skillStrip').style.display = mode === 'artisans' ? 'grid' : 'none';
-      renderMainGrid();
-    }
-
-    function selectCategory(cat) {
-      currentSkillKey = cat;
-      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-      const btn = document.getElementById('cbtn_' + cat);
-      if (btn) btn.classList.add('active');
-      renderMainGrid();
-    }
-
-    function openAirbnbHostPass() {
-      currentMainMode = 'artisans';
-      currentSkillKey = 'airbnbHost';
-      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-      renderMainGrid();
-      window.vgoDialog.toast('已开启【Airbnb 民宿房东急救专线】', 'info');
     }
 
     function renderMainGrid() {
       const grid = document.getElementById('mainGridContainer');
       const currency = currentRegion === 'MY' ? 'RM' : 'S$';
 
-      if (currentMainMode === 'artisans') {
-        let list = window.vgoCatalog[currentSkillKey] || [];
-        if (window.vgoSafety.ladiesOnlyActive) {
-          list = list.filter(i => (i.artisanName && (i.artisanName.includes('Lisa') || i.artisanName.includes('Queenie') || i.artisanName.includes('姐'))));
-        }
+      let list = window.vgoCatalog[currentSkillKey] || [];
+      if (window.vgoSafety.ladiesOnlyActive) {
+        list = list.filter(i => (i.artisanName && (i.artisanName.includes('Lisa') || i.artisanName.includes('Queenie') || i.artisanName.includes('姐'))));
+      }
 
-        grid.innerHTML = list.map(item => {
-          const rawPrice = currentRegion === 'MY' ? item.basePriceMY : item.basePriceSG;
-          const quote = window.vgoPricing.calculateDetailedQuote(rawPrice, [], item.category === 'handyman' || item.category === 'airbnbHost');
-
-          return `
-            <div class="ergo-sku-box btn-press" onclick="openConfigModal('${item.id}')">
-              <div class="sku-img-wrapper">
-                <img src="${item.image}" loading="lazy">
-                <span class="badge-float-tag">${item.badge}</span>
-              </div>
-              <div class="sku-details-body">
-                <div class="artisan-badge-line">
-                  <img src="${item.artisanAvatar}">
-                  <span>${item.artisanName}</span>
-                </div>
-                <div style="font-size:13.5px; font-weight:800; margin-bottom:4px;">${item.name}</div>
-                <div style="font-size:11px; color:#64748B; margin-bottom:8px;">${item.desc}</div>
-                <div class="sku-price-strip">
-                  <span class="sku-price-text">${quote.currency} ${quote.finalTotal}</span>
-                  <button class="btn-circle-cta"><i class="fas fa-arrow-right"></i></button>
-                </div>
-              </div>
+      grid.innerHTML = list.map(item => {
+        const rawPrice = currentRegion === 'MY' ? item.basePriceMY : item.basePriceSG;
+        const quote = window.vgoPricing.calculateDetailedQuote(rawPrice, [], item.category === 'handyman' || item.category === 'airbnbHost');
+        return `
+          <div class="ergo-sku-box btn-press" onclick="openConfigModal('${item.id}')">
+            <div class="sku-img-wrapper">
+              <img src="${item.image}" loading="lazy">
+              <span class="badge-float-tag">${item.badge}</span>
             </div>
-          `;
-        }).join('');
-      } else {
-        const merchants = window.vgoMerchantSync.getAllSyncedMerchants();
-        grid.innerHTML = merchants.map(m => `
-          <div class="merchant-display-card btn-press" onclick="window.vgoDialog.showModalAlert('选定实体门店', '【${m.name}】<br>地址：${m.address}<br>支持到店直接核销。', { btnBg: '#0D9488' })">
-            <img class="merchant-photo-cover" src="${m.image || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&auto=format&fit=crop&q=80'}">
-            <div class="merchant-info-pad">
-              <h3 style="font-size:15px; font-weight:900; margin-bottom:4px;">${m.name}</h3>
-              <div style="font-size:11.5px; color:#64748B;"><i class="fas fa-location-dot"></i> ${m.address}</div>
+            <div class="sku-details-body">
+              <div class="artisan-badge-line">
+                <img src="${item.artisanAvatar}">
+                <span>${item.artisanName}</span>
+              </div>
+              <div style="font-size:13px; font-weight:800; margin-bottom:4px;">${item.name}</div>
+              <div class="sku-price-strip">
+                <span class="sku-price-text">${quote.currency} ${quote.finalTotal}</span>
+                <button class="btn-circle-cta"><i class="fas fa-arrow-right"></i></button>
+              </div>
             </div>
           </div>
-        `).join('');
-      }
+        `;
+      }).join('');
     }
 
-    // 1. 登录验证流程
-    function openAuthModal() {
-      if (window.vgoAuth.currentUser) {
-        window.vgoDialog.confirm('当前已登录', `登录手机: ${window.vgoAuth.currentUser.maskedPhone}<br>信用评级: AAA 金牌客户`, { confirmText: '退出登录', cancelText: '关闭', confirmBg: '#DC2626' }).then(ok => {
-          if (ok) {
-            window.vgoAuth.logout();
-            document.getElementById('btnAuthTrigger').innerHTML = '<i class="fas fa-user-lock"></i> 登录/注册';
-            window.vgoDialog.toast('已安全退出登录');
-          }
-        });
-      } else {
-        document.getElementById('authModalOverlay').classList.add('active');
-      }
-    }
-
-    function sendOtpAction() {
-      const phone = document.getElementById('authPhoneInput').value.trim();
-      try {
-        const code = window.vgoAuth.sendSMSCode(phone);
-        window.vgoDialog.toast(`【模拟短信已发送】验证码为: ${code}`, 'warn');
-        document.getElementById('authCodeInput').value = code;
-      } catch (err) {
-        window.vgoDialog.toast(err.message, 'warn');
-      }
-    }
-
-    function verifyOtpAction() {
-      const phone = document.getElementById('authPhoneInput').value.trim();
-      const code = document.getElementById('authCodeInput').value.trim();
-      const chk = document.getElementById('chkPdpa').checked;
-      if (!chk) {
-        window.vgoDialog.toast('请勾选同意 PDPA 隐私协议！', 'warn');
-        return;
-      }
-      try {
-        const user = window.vgoAuth.verifyLogin(phone, code);
-        document.getElementById('authModalOverlay').classList.remove('active');
-        document.getElementById('btnAuthTrigger').innerHTML = `<i class="fas fa-user-check" style="color:#10B981;"></i> ${user.maskedPhone}`;
-        window.vgoDialog.toast('🎉 登录成功！已开通高保额履约安全险', 'success');
-      } catch (e) {
-        window.vgoDialog.toast(e.message, 'warn');
-      }
-    }
-
-    // 2. GPS 自动填充
-    async function autoFillGPSLocation() {
-      window.vgoDialog.toast('正在通过 GPS 卫星精确定位中...');
-      const coords = await window.vgoBridge.getCurrentLocation();
-      document.getElementById('inputAddr').value = coords.address;
-      window.vgoDialog.toast('定位成功！已自动填充现场坐标');
-    }
-
-    // 3. 配置弹窗与小票计算
     function openConfigModal(id) {
       let found = null;
       for (const k in window.vgoCatalog) {
@@ -402,82 +271,35 @@
       if (!found) return;
       selectedItem = found;
       document.getElementById('cfgTitle').innerText = found.name;
-      refreshReceipt();
       document.getElementById('configModalOverlay').classList.add('active');
     }
+    function closeConfigModal() { document.getElementById('configModalOverlay').classList.remove('active'); }
 
-    function closeConfigModal() {
-      document.getElementById('configModalOverlay').classList.remove('active');
-    }
-
-    function refreshReceipt() {
-      if (!selectedItem) return;
-      const rawPrice = currentRegion === 'MY' ? selectedItem.basePriceMY : selectedItem.basePriceSG;
-      const quote = window.vgoPricing.calculateDetailedQuote(rawPrice, [], selectedItem.category === 'handyman' || selectedItem.category === 'airbnbHost');
-      const insChecked = document.getElementById('chkInsurance')?.checked;
-      const insFee = insChecked ? (currentRegion === 'MY' ? 1.00 : 0.80) : 0;
-      const finalAmount = (Number(quote.finalTotal) + insFee).toFixed(2);
-
-      document.getElementById('cfgReceiptArea').innerHTML = `
-        <div class="receipt-row"><span>基础工时服务费:</span><span>${quote.currency} ${quote.base}.00</span></div>
-        <div class="receipt-row" style="color:#64748B;"><span>法定税费 (${quote.taxName}):</span><span>+${quote.currency} ${quote.taxAmount}</span></div>
-        ${insFee > 0 ? `<div class="receipt-row" style="color:#15803D;"><span>履约人身财产意外保障险:</span><span>+${quote.currency} ${insFee.toFixed(2)}</span></div>` : ''}
-        <div class="receipt-row" style="font-weight:900; font-size:14px; border-top:1px dashed #CBD5E1; padding-top:6px; margin-top:6px;">
-          <span>预估托管总计:</span><span style="color:#DC2626;">${quote.currency} ${finalAmount}</span>
-        </div>
-      `;
-    }
-
-    // 4. 走向支付弹窗
     function goToPaymentModal() {
-      const phone = document.getElementById('inputPhone').value.trim() || (window.vgoAuth.currentUser?.phone) || '0128172166';
-      const addr = document.getElementById('inputAddr').value.trim() || '客户现场定位地址';
-      const insChecked = document.getElementById('chkInsurance')?.checked;
-
-      const rawPrice = currentRegion === 'MY' ? selectedItem.basePriceMY : selectedItem.basePriceSG;
-      const quote = window.vgoPricing.calculateDetailedQuote(rawPrice, [], selectedItem.category === 'handyman' || selectedItem.category === 'airbnbHost');
-
-      pendingPaymentIntent = window.vgoPayment.createPaymentIntent(
-        'VG-' + Date.now().toString().slice(-6),
-        quote.finalTotal,
-        { insurance: insChecked }
-      );
-
-      document.getElementById('paymentQrImg').src = pendingPaymentIntent.qrCodeUrl;
-      document.getElementById('payTotalNum').innerText = `${pendingPaymentIntent.currency} ${pendingPaymentIntent.grandTotal.toFixed(2)}`;
-
+      const chk = document.getElementById('chkValuablesWaiver').checked;
+      if (!chk) {
+        window.vgoDialog.toast('请勾选确认知晓阶梯取消费用与财物知情书！', 'warn');
+        return;
+      }
       closeConfigModal();
-      document.getElementById('paymentModalOverlay').classList.add('active');
-    }
-
-    function confirmPaidAndDispatch() {
-      document.getElementById('paymentModalOverlay').classList.remove('active');
-      window.vgoBridge.sendPushAlert('Vgo 工单派发成功', `工单 [${pendingPaymentIntent.orderId}] 款项已进入平台托管，正在匹配持证手艺人。`);
-      window.vgoDialog.showModalAlert(
-        '资金托管已生效！',
-        `订单 <strong>${pendingPaymentIntent.orderId}</strong> 已支付完成。<br>款项将安全保存在平台托管专户中，待您现场验收并向手艺人出示 6 位核销码后，系统才会自动分账释放给师傅。`,
-        { iconClass: 'fas fa-shield-check', btnBg: '#0D9488' }
-      );
+      window.vgoDialog.toast('共识签署完成，已为您生成托管支付订单！', 'success');
     }
 
     function triggerSafetySOS() {
-      const shareData = window.vgoSafety.generateLiveTripShareData('VG-SAFETY-SHIELD', '认证手艺人', '15分钟');
-      window.vgoDialog.confirm(
-        'Vgo 平台安全守护中枢',
-        '• 一键向家人 WhatsApp 分享行程轨迹与师傅背景<br>• 如遇现场纠纷威胁，点击“紧急求助”，系统自动向 24H 调度报警',
-        { confirmText: '分享行程至 WhatsApp', cancelText: '静默报警', confirmBg: '#0D9488' }
-      ).then(isShare => {
-        if (isShare) window.location.href = shareData.whatsappUrl;
-        else window.vgoDialog.toast('已将您的高精度经纬度上报给应急值班室！', 'warn');
-      });
+      window.vgoDialog.showModalAlert('Vgo 安全守护中枢', '如遇突发纠纷或人身危险，系统已为您备妥一键上报定位调度。客服热线：01172691788', { btnBg: '#0D9488' });
+    }
+
+    function selectCategory(cat) {
+      currentSkillKey = cat;
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('cbtn_' + cat);
+      if (btn) btn.classList.add('active');
+      renderMainGrid();
     }
 
     window.onload = () => {
+      renderSubscriptionPlans();
       renderMainGrid();
-      window.vgoBridge.requestNotificationPermission();
-      if (window.vgoAuth.currentUser) {
-        document.getElementById('btnAuthTrigger').innerHTML = `<i class="fas fa-user-check" style="color:#10B981;"></i> ${window.vgoAuth.currentUser.maskedPhone}`;
-      }
     };
   </script>
 </body>

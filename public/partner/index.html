@@ -3,141 +3,145 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Vgo Partner - 手艺人接单与成长合伙人中枢</title>
+  <title>Vgo Partner - 手艺人作业与合规安全中枢</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../assets/css/design-system.css">
   <style>
     body { background: #090D16; color: #F8FAFC; padding-bottom: calc(75px + var(--safe-bottom)); user-select: none; }
-    .partner-top {
+    .partner-topbar {
       position: sticky; top: 0; z-index: 100; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px);
       padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1E293B;
     }
-    .tier-badge-card {
-      margin: 10px 16px; background: linear-gradient(135deg, #1E293B, #0F172A);
-      border: 1.5px solid #F59E0B; border-radius: 16px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
+    .compliance-pill-row {
+      display: flex; gap: 8px; padding: 10px 16px; overflow-x: auto; scrollbar-width: none;
     }
-    .tab-btn-row { display: flex; gap: 8px; padding: 10px 16px; background: #0F172A; }
-    .p-nav-btn {
-      flex: 1; padding: 8px; border-radius: 12px; background: #1E293B; border: 1px solid #334155;
-      color: #94A3B8; font-size: 11.5px; font-weight: 800; cursor: pointer; text-align: center;
+    .comp-card {
+      flex: 1; min-width: 140px; background: #1E293B; border: 1px solid #334155; border-radius: 14px; padding: 10px 12px;
     }
-    .p-nav-btn.active { background: #0D9488; color: #fff; border-color: #0D9488; }
-    .view-box { display: none; padding: 0 16px; }
-    .view-box.active { display: block; }
   </style>
 </head>
 <body>
 
-  <header class="partner-top">
+  <header class="partner-topbar">
     <div style="display:flex; align-items:center; gap:10px;">
-      <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80" style="width:38px; height:38px; border-radius:50%; border:2px solid #0D9488; object-fit:cover;">
+      <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80" style="width:40px; height:40px; border-radius:50%; border:2px solid #0D9488; object-fit:cover;">
       <div>
         <div style="font-size:14px; font-weight:900;">Lisa 师姐 / 陈工</div>
-        <div style="font-size:10px; color:#10B981;">● 听单就绪 · 已通过 PDPA 实名认证</div>
+        <div style="font-size:10px; color:#10B981;" id="txtPermitStatus">● 外籍工签合规有效 (剩 207 天)</div>
       </div>
     </div>
-    <button class="btn-press" style="background:#0D9488; color:#fff; border:none; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:800;" onclick="showReferralProgram()">
-      <i class="fas fa-gift"></i> 推荐奖 RM50
+    <button class="btn-press" id="btnOnlineToggle" style="background:#0D9488; color:#fff; border:none; padding:7px 14px; border-radius:20px; font-size:11px; font-weight:800;" onclick="handleToggleOnline()">
+      <i class="fas fa-radar"></i> 听单中
     </button>
   </header>
 
-  <!-- 星级阶梯抽成卡片 (接满100单直降至8%) -->
-  <div class="tier-badge-card">
-    <div>
-      <div style="font-size:11px; color:#F59E0B; font-weight:800;" id="tierTitle">金牌王者合伙人 (当前满 128 单)</div>
-      <div style="font-size:18px; font-weight:900; color:#fff; margin-top:2px;">抽成仅 8% <small style="font-size:11px; color:#10B981; font-weight:600;">(比新师傅多赚 7%)</small></div>
-      <div style="font-size:10px; color:#94A3B8; margin-top:2px;">享 SOCSO 官方社保津贴 RM150/月</div>
+  <div class="compliance-pill-row">
+    <div class="comp-card">
+      <div style="font-size:10.5px; color:#94A3B8;">现金单接单额度池</div>
+      <div style="font-size:16px; font-weight:900; color:#10B981; margin:2px 0;" id="txtCashCredit">RM 120.00</div>
+      <div style="font-size:9.5px; color:#64748B;">可接 RM800 现金单 · 自动扣佣</div>
     </div>
-    <i class="fas fa-crown" style="font-size:32px; color:#F59E0B;"></i>
+    <div class="comp-card btn-press" onclick="openToolkitCheckModal()">
+      <div style="font-size:10.5px; color:#94A3B8;">每日开工工具箱自检</div>
+      <div style="font-size:14px; font-weight:900; color:#F59E0B; margin:2px 0;" id="txtToolkitStatus">未完成打卡 ⚠️</div>
+      <div style="font-size:9.5px; color:#64748B;">点击进行 30秒 标准物料核验</div>
+    </div>
   </div>
 
-  <div class="tab-btn-row">
-    <button class="p-nav-btn active" id="pbtn_jobs" onclick="switchPV('jobs')"><i class="fas fa-radar"></i> 听单大厅</button>
-    <button class="p-nav-btn" id="pbtn_cam" onclick="switchPV('cam')"><i class="fas fa-camera"></i> 防作弊存证</button>
-    <button class="p-nav-btn" id="pbtn_bonus" onclick="switchPV('bonus')"><i class="fas fa-users"></i> 以老带新奖</button>
-  </div>
-
-  <!-- 视图 1：听单大厅 -->
-  <div class="view-box active" id="pv_jobs">
-    <div style="background:#131C2E; border:1px solid #1E293B; border-radius:18px; padding:16px; margin:12px 0;">
+  <div style="padding:0 16px; margin-top:8px;">
+    <div style="background:#1E293B; border:1.5px solid #0D9488; border-radius:18px; padding:16px;">
       <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-        <span style="font-size:10.5px; background:#FF385C; color:#fff; padding:2px 7px; border-radius:6px; font-weight:800;">Airbnb 房东急救单</span>
-        <span style="font-size:11px; color:#F59E0B; font-weight:800;">20分急达</span>
+        <span style="font-size:10.5px; background:#0D9488; color:#fff; padding:2px 7px; border-radius:6px; font-weight:800;">现金单支持</span>
+        <span style="font-size:10.5px; color:#10B981; font-weight:800;"><i class="fas fa-shield"></i> 爽约赔 RM15 车马费</span>
       </div>
-      <div style="font-size:15px; font-weight:900;">【民宿急修】密码门锁卡死 / 应急外接供电开门</div>
-      <div style="font-size:11px; color:#94A3B8; margin:4px 0 10px;"><i class="fas fa-location-dot"></i> 亚庇市中心 Jesselton Quay 12楼 · 距您 1.1km</div>
+      <div style="font-size:15.5px; font-weight:900;">办公室肩颈解结推拿 (60分钟)</div>
+      <div style="font-size:11.5px; color:#94A3B8; margin:4px 0 8px;"><i class="fas fa-map-pin"></i> 亚庇市中心 独立大厦 · 距您 1.4km</div>
       <div style="display:flex; justify-content:space-between; align-items:baseline;">
-        <div style="font-size:16px; font-weight:900; color:#F87171;">预计净到手: RM 110.40 (8%抽成)</div>
-        <button class="btn-press" style="background:#0D9488; color:#fff; border:none; padding:8px 18px; border-radius:10px; font-weight:900;" onclick="window.vgoDialog.toast('抢单成功！已启动原生导航')">立即抢单</button>
+        <div>
+          <span style="font-size:10px; color:#94A3B8;">现金收款: RM 98.00</span>
+          <div style="font-size:16px; font-weight:900; color:#F87171;">到手净额: RM 83.30</div>
+        </div>
+        <button class="btn-press" style="background:#0D9488; border:none; color:#fff; padding:9px 20px; border-radius:12px; font-weight:900;" onclick="grabCashJobAction(98.00)">
+          抢现金单
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- 视图 2：防作弊水印相机 -->
-  <div class="view-box" id="pv_cam">
-    <div style="background:#1E293B; border:1px solid #334155; border-radius:18px; padding:16px; margin:12px 0;">
-      <div style="font-size:14px; font-weight:900; margin-bottom:6px;"><i class="fas fa-camera" style="color:#0D9488;"></i> 防作弊带时间与坐标水印现场存证</div>
-      <div style="font-size:11px; color:#94A3B8; margin-bottom:12px;">施工前必须在此拍照，系统将强制打入 GPS 经纬度与只读时间戳。</div>
-      
-      <input type="file" id="cameraInput" accept="image/*" capture="camera" style="display:none;" onchange="handleEvidenceFile(this)">
-      <button class="btn-press" style="width:100%; min-height:44px; background:#0284C7; color:#fff; border:none; border-radius:12px; font-weight:800; font-size:13px; margin-bottom:12px;" onclick="document.getElementById('cameraInput').click()">
-        <i class="fas fa-camera"></i> 启动相机拍照存证
+  <div id="toolkitModal" class="center-modal-scrim">
+    <div class="center-modal-box" style="background:#1E293B; color:#fff; padding:22px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:16.5px; font-weight:900;"><i class="fas fa-toolbox" style="color:#0D9488;"></i> 每日开工标准化装备自检</h3>
+        <button onclick="closeToolkitModal()" style="border:none; background:none; font-size:22px; color:#94A3B8; cursor:pointer;">&times;</button>
+      </div>
+      <p style="font-size:11.5px; color:#94A3B8; margin-bottom:14px;">为确保全平台服务品质统一，开始听单前请勾选今日随身携带的标准化装备：</p>
+
+      <div style="display:flex; flex-direction:column; gap:10px; font-size:12.5px; margin-bottom:16px;">
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="t1" checked style="width:18px; height:18px; accent-color:#0D9488;">
+          <span>一次性无纺布医用隔脏床单 / 作业垫布</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="t2" checked style="width:18px; height:18px; accent-color:#0D9488;">
+          <span>纯天然单方精油 / 环保无酸去油清洗剂</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="t3" checked style="width:18px; height:18px; accent-color:#0D9488;">
+          <span>75% 免洗手消毒凝胶 + 便携鞋套</span>
+        </label>
+      </div>
+
+      <button class="btn-press" style="width:100%; min-height:46px; background:#0D9488; color:#fff; border:none; border-radius:12px; font-weight:900; font-size:14px;" onclick="confirmToolkitCheck()">
+        完成自检 · 开启全城听单
       </button>
-
-      <div id="watermarkPreview" style="border-radius:12px; overflow:hidden; display:none;"></div>
-    </div>
-  </div>
-
-  <!-- 视图 3：以老带新推荐赏金 -->
-  <div class="view-box" id="pv_bonus">
-    <div style="background:#1E293B; border:1px solid #334155; border-radius:18px; padding:16px; margin:12px 0;">
-      <div style="font-size:14px; font-weight:900; color:#F59E0B; margin-bottom:6px;"><i class="fas fa-coins"></i> 邀请师傅加入 · 坐享现金分红</div>
-      <div style="font-size:11.5px; color:#94A3B8; margin-bottom:12px;">新师傅通过您的邀请码认证入驻并完成首 10 单，您将立得 <strong>RM 50 现金奖励</strong>！</div>
-      
-      <div style="background:#0F172A; border:1px solid #334155; border-radius:12px; padding:12px; text-align:center; margin-bottom:12px;">
-        <div style="font-size:11px; color:#94A3B8;">您的专属邀请码</div>
-        <div style="font-size:22px; font-weight:900; color:#10B981; letter-spacing:4px; margin:4px 0;" id="refCodeText">VGO8888</div>
-        <button class="btn-press" style="background:#0D9488; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-size:11.5px; font-weight:800;" onclick="copyReferralLink()">复制邀请链接发群</button>
-      </div>
     </div>
   </div>
 
   <script src="../core/dialogEngine.js"></script>
-  <script src="../core/nativeBridge.js"></script>
-  <script src="../modules/growthEngine.js"></script>
+  <script src="../modules/complianceRiskEngine.js"></script>
 
   <script>
-    function switchPV(v) {
-      document.querySelectorAll('.p-nav-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.view-box').forEach(b => b.classList.remove('active'));
-      document.getElementById('pbtn_' + v).classList.add('active');
-      document.getElementById('pv_' + v).classList.add('active');
-    }
-
-    async function handleEvidenceFile(input) {
-      if (input.files && input.files[0]) {
-        window.vgoDialog.toast('正在提取 GPS 坐标并合成防篡改水印...');
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          const stampedUrl = await window.vgoBridge.captureWatermarkEvidence(e.target.result, '现场履约开工存证');
-          const preview = document.getElementById('watermarkPreview');
-          preview.style.display = 'block';
-          preview.innerHTML = `<img src="${stampedUrl}" style="width:100%; display:block; border-radius:12px;">`;
-          window.vgoDialog.toast('🎉 防篡改存证照片已生成并存入云端！', 'success');
-        };
-        reader.readAsDataURL(input.files[0]);
+    function handleToggleOnline() {
+      // 检查外籍工签合规性
+      const permitCheck = window.vgoRisk.checkPermitCompliance();
+      if (!permitCheck.allowed) {
+        window.vgoDialog.showModalAlert('准证熔断警报', permitCheck.msg, { btnBg: '#DC2626' });
+        return;
       }
+
+      // 检查每日工具箱自检
+      if (!window.vgoRisk.dailyToolkitChecked) {
+        window.vgoDialog.toast('请先完成每日工具箱自检打卡！', 'warn');
+        openToolkitCheckModal();
+        return;
+      }
+
+      window.vgoDialog.toast('听单雷达已刷新，正常覆盖中');
     }
 
-    function showReferralProgram() {
-      switchPV('bonus');
+    function openToolkitCheckModal() { document.getElementById('toolkitModal').classList.add('active'); }
+    function closeToolkitModal() { document.getElementById('toolkitModal').classList.remove('active'); }
+
+    function confirmToolkitCheck() {
+      window.vgoRisk.completeDailyToolkitCheck();
+      document.getElementById('txtToolkitStatus').innerText = '已完成打卡 ✅';
+      document.getElementById('txtToolkitStatus').style.color = '#10B981';
+      closeToolkitModal();
+      window.vgoDialog.toast('🎉 每日工具箱自检完成！已恢复最高权重听单');
     }
 
-    function copyReferralLink() {
-      const code = document.getElementById('refCodeText').innerText;
-      const text = `【加入 Vgo 手艺人合伙人】兼职赚取额外丰厚收入！用我的专属邀请码 [${code}] 注册，完成首单享额外补贴：https://vgo.life/join?ref=${code}`;
-      navigator.clipboard ? navigator.clipboard.writeText(text) : null;
-      window.vgoDialog.showModalAlert('邀请文案已复制！', '可直接粘贴发至您的手艺人同乡群/微信群/WhatsApp 群，新师傅完工后赏金自动入账兼职钱包。', { btnBg: '#0D9488' });
+    function grabCashJobAction(cashAmount) {
+      try {
+        const res = window.vgoRisk.deductCashOrderCommission(cashAmount);
+        document.getElementById('txtCashCredit').innerText = `RM ${res.newDepositBalance.toFixed(2)}`;
+        window.vgoDialog.showModalAlert(
+          '抢单成功 (现金单)',
+          `工单抢单成功！<br>已从您的保证金池自动划扣 15% 平台佣金 <strong style="color:#F59E0B;">RM ${res.commissionDeducted.toFixed(2)}</strong>。<br>现场请直接向客户收取 <strong>RM ${cashAmount.toFixed(2)}</strong> 现金。`,
+          { btnBg: '#0D9488' }
+        );
+      } catch (err) {
+        window.vgoDialog.showModalAlert('接单失败', err.message, { btnBg: '#DC2626' });
+      }
     }
   </script>
 </body>
