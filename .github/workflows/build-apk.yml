@@ -14,11 +14,11 @@ jobs:
         app:
           - name: "Vgo-Customer"
             package: "com.vgo.customer"
-            entry: "VgoMainUI.html"
+            entry_dir: "public/customer"
             display_name: "Vgo"
           - name: "Vgo-Partner"
             package: "com.vgo.partner"
-            entry: "tech.html"
+            entry_dir: "public/partner"
             display_name: "Vgo Partner"
 
     steps:
@@ -39,23 +39,16 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Inject Entry & Package Identity
+      - name: Inject Production Entry & Manifest
         run: |
-          echo "Target App: ${{ matrix.app.name }}"
-          # 精准替换 public/ 下的入口文件
-          if [ -f "public/${{ matrix.app.entry }}" ]; then
-            cp -f "public/${{ matrix.app.entry }}" public/index.html
-            echo "Successfully mapped public/${{ matrix.app.entry }} to public/index.html"
-          elif [ -f "${{ matrix.app.entry }}" ]; then
-            cp -f "${{ matrix.app.entry }}" public/index.html
-          fi
+          echo "Building target: ${{ matrix.app.name }} from ${{ matrix.app.entry_dir }}"
+          # 清理并拷贝对应的核心端资产
+          mkdir -p public www
+          cp -rf ${{ matrix.app.entry_dir }}/* public/
+          cp -rf ${{ matrix.app.entry_dir }}/* www/
+          cp -f public/index.html index.html
 
-          # 确保根目录及 www 目录同步
-          mkdir -p www
-          cp -f public/index.html index.html 2>/dev/null || true
-          cp -f public/index.html www/index.html 2>/dev/null || true
-
-          # 动态更新 Android 应用名称
+          # 动态更新 Android 应用名称与包名
           if [ -f "android/app/src/main/res/values/strings.xml" ]; then
             sed -i "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">${{ matrix.app.display_name }}</string>|g" android/app/src/main/res/values/strings.xml || true
           fi
