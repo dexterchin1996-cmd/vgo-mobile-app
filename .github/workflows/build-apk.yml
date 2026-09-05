@@ -45,62 +45,19 @@ jobs:
           fi
           npx cap sync android
 
-      - name: 注入 RSA 4096-bit 生产商业签名密钥
+      - name: 执行解耦签名配置脚本
         run: |
-          mkdir -p certs
-          keytool -genkeypair -v \
-            -keystore certs/vgo-release-key.jks \
-            -keyalg RSA \
-            -keysize 4096 \
-            -validity 10000 \
-            -alias vgo-release \
-            -storepass "VgoSuperApp2026SecurePass" \
-            -keypass "VgoSuperApp2026SecurePass" \
-            -dname "CN=Vgo Platform Engineering, OU=Technology, O=Vgo Technologies SDN BHD, L=Kota Kinabalu, ST=Sabah, C=MY" \
-            -noprompt
-
-      - name: 深度配置 Gradle 商业签名构建块 (Patch build.gradle)
-        run: |
-          node -e '
-          const fs = require("fs");
-          const bgPath = "android/app/build.gradle";
-          if (fs.existsSync(bgPath)) {
-            let content = fs.readFileSync(bgPath, "utf8");
-            const signingConfigBlock = `
-    signingConfigs {
-        release {
-            storeFile file("../../certs/vgo-release-key.jks")
-            storePassword "VgoSuperApp2026SecurePass"
-            keyAlias "vgo-release"
-            keyPassword "VgoSuperApp2026SecurePass"
-            v1SigningEnabled true
-            v2SigningEnabled true
-        }
-    }
-            `;
-            if (!content.includes("signingConfigs {")) {
-              content = content.replace("buildTypes {", signingConfigBlock + "\n    buildTypes {");
-              content = content.replace("buildTypes {\\n        release {", "buildTypes {\\n        release {\\n            signingConfig signingConfigs.release");
-              fs.writeFileSync(bgPath, content);
-              console.log("✅ Gradle 生产级签名配置注入完成");
-            }
-          }
-          '
+          node scripts/configure-signing.js
 
       - name: 赋予 Gradle 脚本执行权限
         run: |
           cd android
           chmod +x gradlew
 
-      - name: 编译商业级签名 Android App Bundle (.aab 专供 Google Play 上架)
+      - name: 编译 Android 生产产物 (Release AAB & Release APK)
         run: |
           cd android
-          ./gradlew bundleRelease --no-daemon --stacktrace
-
-      - name: 编译商业级签名 Release APK (用于生产脱机分发与直接安装)
-        run: |
-          cd android
-          ./gradlew assembleRelease --no-daemon --stacktrace
+          ./gradlew :app:bundleRelease :app:assembleRelease :app:assembleDebug --no-daemon --stacktrace
 
       - name: 归档上传 Google Play AAB 与 Release APK
         uses: actions/upload-artifact@v4
@@ -109,4 +66,5 @@ jobs:
           path: |
             android/app/build/outputs/bundle/release/*.aab
             android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/apk/debug/*.apk
           retention-days: 14
