@@ -240,7 +240,7 @@
     <div class="dock-tab-btn active" onclick="window.vgoDialog.toast('已在服务大厅', 'info')"><i class="fas fa-compass" style="font-size:18px;"></i><span>服务大厅</span></div>
     <div class="dock-tab-btn" onclick="openOrderTrackerModal()"><i class="fas fa-clipboard-check" style="font-size:18px;"></i><span>履约订单</span></div>
     <div class="dock-tab-btn" onclick="openHotlineDialog()"><i class="fas fa-headset" style="font-size:18px;"></i><span>调度客服</span></div>
-    <div class="dock-tab-btn" onclick="window.vgoDialog.alert('Vgo 客户账户中心', '您的设备环境已通过移动端 Capacitor 沙箱安全认证。<br>信用评级：<strong>AAA 金牌用户</strong>', { iconClass: 'fas fa-shield-halved', btnBg: '#0D9488' })"><i class="fas fa-user-shield" style="font-size:18px;"></i><span>客户中心</span></div>
+    <div class="dock-tab-btn" onclick="window.vgoDialog.showModalAlert('Vgo 客户账户中心', '您的设备环境已通过移动端 Capacitor 沙箱安全认证。<br>信用评级：<strong>AAA 金牌用户</strong>', { iconClass: 'fas fa-shield-halved', btnBg: '#0D9488' })"><i class="fas fa-user-shield" style="font-size:18px;"></i><span>客户中心</span></div>
   </nav>
 
   <!-- ======================================================== -->
@@ -465,7 +465,7 @@
         }
 
         container.innerHTML = merchants.map(m => `
-          <div class="merchant-display-card btn-press" onclick="window.vgoDialog.alert('已为您锁定门店', '【${m.name}】<br>实体地址：${m.address}<br>营业时间：${m.openTime}<br>前台支持出示电子订单随时核销。', { iconClass: 'fas fa-store', btnBg: '#0D9488' })">
+          <div class="merchant-display-card btn-press" onclick="window.vgoDialog.showModalAlert('已为您锁定门店', '【${m.name}】<br>实体地址：${m.address}<br>营业时间：${m.openTime}<br>前台支持出示电子订单随时核销。', { iconClass: 'fas fa-store', btnBg: '#0D9488' })">
             <img class="merchant-photo-cover" src="${m.image || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&auto=format&fit=crop&q=80'}" alt="${m.name}">
             <div class="merchant-info-pad">
               <div style="display: flex; justify-content: space-between; align-items: baseline;">
