@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build-production-android:
-    name: Build Vgo Signed Release APK & Google Play AAB
+    name: Build Signed Release APK & Google Play AAB
     runs-on: ubuntu-latest
 
     steps:
@@ -32,39 +32,81 @@ jobs:
       - name: 安装 Android 构建工具链与 SDK
         uses: android-actions/setup-android@v3
 
-      - name: 安装工程依赖与 Web 静态容器同步
+      - name: 安装工程依赖并同步 Web 容器镜像
         run: |
           npm install --legacy-peer-deps
           mkdir -p www
           cp -rf public/* www/
 
-      - name: 检查并同步 Capacitor 原生 Android 容器
+      - name: 检查并初始化 Capacitor 原生 Android 容器
         run: |
           if [ ! -d "android" ]; then
             npx cap add android
           fi
           npx cap sync android
 
+      - name: 注入 RSA 4096-bit 生产商业签名密钥
+        run: |
+          mkdir -p certs
+          keytool -genkeypair -v \
+            -keystore certs/vgo-release-key.jks \
+            -keyalg RSA \
+            -keysize 4096 \
+            -validity 10000 \
+            -alias vgo-release \
+            -storepass "VgoSuperApp2026SecurePass" \
+            -keypass "VgoSuperApp2026SecurePass" \
+            -dname "CN=Vgo Platform Engineering, OU=Technology, O=Vgo Technologies SDN BHD, L=Kota Kinabalu, ST=Sabah, C=MY" \
+            -noprompt
+
+      - name: 深度配置 Gradle 商业签名构建块 (Patch build.gradle)
+        run: |
+          node -e '
+          const fs = require("fs");
+          const bgPath = "android/app/build.gradle";
+          if (fs.existsSync(bgPath)) {
+            let content = fs.readFileSync(bgPath, "utf8");
+            const signingConfigBlock = `
+    signingConfigs {
+        release {
+            storeFile file("../../certs/vgo-release-key.jks")
+            storePassword "VgoSuperApp2026SecurePass"
+            keyAlias "vgo-release"
+            keyPassword "VgoSuperApp2026SecurePass"
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
+    }
+            `;
+            if (!content.includes("signingConfigs {")) {
+              content = content.replace("buildTypes {", signingConfigBlock + "\n    buildTypes {");
+              content = content.replace("buildTypes {\\n        release {", "buildTypes {\\n        release {\\n            signingConfig signingConfigs.release");
+              fs.writeFileSync(bgPath, content);
+              console.log("✅ Gradle 生产级签名配置注入完成");
+            }
+          }
+          '
+
       - name: 赋予 Gradle 脚本执行权限
         run: |
           cd android
           chmod +x gradlew
 
-      - name: 编译 Debug 版 APK (用于真机本地快速验证)
+      - name: 编译商业级签名 Android App Bundle (.aab 专供 Google Play 上架)
         run: |
           cd android
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew bundleRelease --no-daemon --stacktrace
 
-      - name: 编译商用级 AAB (专供提交 Google Play 官方商店)
+      - name: 编译商业级签名 Release APK (用于生产脱机分发与直接安装)
         run: |
           cd android
-          ./gradlew bundleDebug --no-daemon
+          ./gradlew assembleRelease --no-daemon --stacktrace
 
-      - name: 上传构建产物至 GitHub Artifacts
+      - name: 归档上传 Google Play AAB 与 Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vgo-Production-Packages
+          name: Vgo-Production-Release-Package
           path: |
-            android/app/build/outputs/apk/debug/*.apk
-            android/app/build/outputs/bundle/**/*.aab
+            android/app/build/outputs/bundle/release/*.aab
+            android/app/build/outputs/apk/release/*.apk
           retention-days: 14
