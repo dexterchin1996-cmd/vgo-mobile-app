@@ -1,227 +1,585 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <script src="/config.js"></script>
-  <script src="/app-native-bridge.js"></script>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vgo 平台总控中枢 | 运营与运维仪表盘</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Native App Optimization -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Vgo">
-  <meta name="format-detection" content="telephone=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vgo Admin HQ - 平台总控调度与运营决策中枢</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/design-system.css">
   <style>
-    /* 适配 iPhone 灵动岛 / 底部横条 Safe Area 与原生弹性手势 */
+    /* 总控后台采用高密度、高专业度的企业深色控制台设计 (Enterprise Console) */
     body {
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      overscroll-behavior-y: contain;
+      background: #0B1120; color: #F8FAFC;
+      padding-bottom: 40px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    input, textarea { user-select: auto; }
+
+    /* 顶部总控导航条 */
+    .admin-navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(12px);
+      padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #1E293B;
+    }
+    .admin-logo-group { display: flex; align-items: center; gap: 12px; }
+    .admin-badge-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, #EA580C, #DC2626);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 20px; box-shadow: 0 0 15px rgba(234, 88, 12, 0.4);
+    }
+    .status-pulse-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #10B981; box-shadow: 0 0 8px #10B981; margin-right: 6px;
+    }
+
+    /* 全局核心业务指标大盘 (Metrics Row) */
+    .metrics-container {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+      padding: 16px 20px;
+    }
+    .metric-box {
+      background: #1E293B; border: 1px solid #334155; border-radius: 16px;
+      padding: 16px 14px; position: relative; overflow: hidden;
+    }
+    .metric-box::after {
+      content: ""; position: absolute; right: -10px; bottom: -10px;
+      width: 60px; height: 60px; border-radius: 50%;
+      background: rgba(255,255,255,0.02); pointer-events: none;
+    }
+    .metric-title { font-size: 11px; color: #94A3B8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-val { font-size: 22px; font-weight: 900; margin-top: 6px; }
+    .metric-trend { font-size: 10.5px; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+    .trend-up { color: #10B981; }
+
+    /* 控制台中枢主 Tab 导航 */
+    .admin-nav-tabs {
+      display: flex; gap: 10px; padding: 0 20px 14px; overflow-x: auto; scrollbar-width: none;
+    }
+    .admin-nav-tabs::-webkit-scrollbar { display: none; }
+    .tab-item-btn {
+      flex-shrink: 0; padding: 10px 18px; border-radius: 12px; background: #1E293B;
+      border: 1px solid #334155; font-size: 13px; font-weight: 800; color: #94A3B8;
+      cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+    }
+    .tab-item-btn.active {
+      background: #0284C7; color: #fff; border-color: #0284C7;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    }
+
+    /* 模块主视图容器 */
+    .admin-view-panel { display: none; padding: 0 20px; }
+    .admin-view-panel.active { display: block; }
+
+    /* 数据表格与卡片系统 */
+    .console-card {
+      background: #1E293B; border: 1px solid #334155; border-radius: 20px;
+      padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .console-card-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+    }
+    .console-table {
+      width: 100%; border-collapse: collapse; text-align: left; font-size: 12.5px;
+    }
+    .console-table th {
+      padding: 12px 10px; color: #94A3B8; font-weight: 800; border-bottom: 1px solid #334155;
+    }
+    .console-table td {
+      padding: 14px 10px; border-bottom: 1px solid #334155; vertical-align: middle;
+    }
+    .table-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+
+    /* 状态徽章 */
+    .badge-chip {
+      padding: 3px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 800; display: inline-block;
+    }
+    .badge-dispatching { background: rgba(234, 88, 12, 0.2); color: #FB923C; border: 1px solid #EA580C; }
+    .badge-working { background: rgba(2, 132, 199, 0.2); color: #38BDF8; border: 1px solid #0284C7; }
+    .badge-completed { background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid #10B981; }
+    .badge-pending { background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid #F59E0B; }
+
+    /* 操作按钮组 */
+    .btn-action-sm {
+      padding: 6px 12px; border-radius: 8px; border: none; font-size: 11px; font-weight: 800;
+      cursor: pointer; transition: transform 0.1s;
+    }
+    .btn-action-sm:active { transform: scale(0.95); }
+    .btn-approve { background: #0D9488; color: #fff; }
+    .btn-reject { background: #334155; color: #F87171; }
+    .btn-arbitrate { background: #EA580C; color: #fff; }
+
+    /* 快捷环境模拟条 */
+    .env-switcher {
+      display: flex; gap: 8px; background: #0F172A; padding: 4px; border-radius: 10px; border: 1px solid #334155;
+    }
+    .env-btn {
+      border: none; background: transparent; padding: 4px 10px; border-radius: 8px;
+      font-size: 11px; font-weight: 800; color: #94A3B8; cursor: pointer;
+    }
+    .env-btn.active { background: #334155; color: #F8FAFC; }
   </style>
-
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center">
-  <div class="w-full max-w-2xl min-h-screen p-4 flex flex-col justify-between space-y-4">
+<body>
 
-    <!-- 顶部状态栏 -->
-    <header class="bg-slate-800/80 backdrop-blur border border-slate-700 p-4 rounded-2xl flex justify-between items-center shadow-lg">
+  <!-- 顶部中枢控制栏 -->
+  <header class="admin-navbar">
+    <div class="admin-logo-group">
+      <div class="admin-badge-icon">HQ</div>
       <div>
-        <h1 class="text-xl font-black bg-gradient-to-r from-teal-400 via-amber-400 to-rose-400 bg-clip-text text-transparent">
-          Vgo Platform Admin
-        </h1>
-        <p class="text-[10px] text-slate-400">Kota Kinabalu 核心业务运营 · 总控中枢</p>
-      </div>
-      <div id="status-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-        🟢 核心引擎健康
-      </div>
-    </header>
-
-    <!-- 实时指标卡片 -->
-    <div class="grid grid-cols-3 gap-3 text-xs">
-      <div class="bg-slate-800 border border-slate-700 p-3 rounded-xl">
-        <span class="text-slate-400 block text-[10px]">今日 GMV 流水</span>
-        <span class="text-lg font-black text-amber-400">RM 1,820</span>
-      </div>
-      <div class="bg-slate-800 border border-slate-700 p-3 rounded-xl">
-        <span class="text-slate-400 block text-[10px]">Escrow 托管在押</span>
-        <span class="text-lg font-black text-teal-400">RM 205.00</span>
-      </div>
-      <div class="bg-slate-800 border border-slate-700 p-3 rounded-xl">
-        <span class="text-slate-400 block text-[10px]">在线履约运力</span>
-        <span class="text-lg font-black text-indigo-400">2 位 (店/技)</span>
+        <div style="font-size: 16px; font-weight: 900; display: flex; align-items: center;">
+          <span>Vgo 平台总控决策中枢</span>
+          <span style="font-size: 10.5px; background: #334155; padding: 2px 7px; border-radius: 4px; margin-left: 8px; font-weight: 700;">PROD 2026.9</span>
+        </div>
+        <div style="font-size: 11px; color: #94A3B8; margin-top: 1px;">
+          <span class="status-pulse-dot"></span>调度引擎与分布式锁正常运行中
+        </div>
       </div>
     </div>
 
-    <!-- 商户与技师资质审核中枢 (KYC) -->
-    <section class="bg-slate-800 border border-slate-700 p-4 rounded-2xl space-y-3 text-xs shadow-md">
-      <div class="flex justify-between items-center border-b border-slate-700 pb-2">
-        <span class="font-bold text-sm text-slate-200">📋 商户入驻与资质审核 (SSM / 营业资质)</span>
-        <button onclick="loadMerchants()" class="text-teal-400 hover:underline">🔄 刷新列表</button>
+    <!-- 市场区域与快速跳转 -->
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div class="env-switcher">
+        <button class="env-btn active" id="btnHQMY" onclick="switchHQMarket('MY')">🇲🇾 马来西亚大盘</button>
+        <button class="env-btn" id="btnHQSG" onclick="switchHQMarket('SG')">🇸🇬 新加坡大盘</button>
       </div>
-      <div id="merchant-audit-list" class="space-y-2">
-        <div class="text-slate-400 text-center py-4">正在拉取资质审查池...</div>
-      </div>
-    </section>
+      <button class="btn-action-sm btn-press" style="background:#1E293B; border:1px solid #334155; color:#F8FAFC; padding:8px 14px;" onclick="window.location.href='../customer/index.html'">
+        <i class="fas fa-arrow-up-right-from-square"></i> 访问顾客端
+      </button>
+    </div>
+  </header>
 
-    <!-- 佣金与分账动态调控中枢 -->
-    <section class="bg-slate-800 border border-slate-700 p-4 rounded-2xl space-y-4 text-xs shadow-md">
-      <div class="flex justify-between items-center border-b border-slate-700 pb-2">
-        <span class="font-bold text-sm text-slate-200">⚙️ 动态佣金与分账策略分配 (即时生效)</span>
-        <span class="text-[10px] text-teal-400">● 动态生效无需重启</span>
-      </div>
-
-      <!-- 1. 到店 -->
-      <div class="bg-slate-900/60 p-3 rounded-xl space-y-2 border border-slate-700/50">
-        <div class="flex justify-between items-center font-bold">
-          <span class="text-emerald-400">🟢 翡翠青 · 到店 (STORE)</span>
-          <span class="text-slate-400 text-[10px]">泰式养生等线下旗舰店</span>
-        </div>
-        <div class="grid grid-cols-2 gap-2 pt-1">
-          <div>
-            <label class="text-[10px] text-slate-400">技师分成比例 (%)</label>
-            <input id="store-tech" type="number" value="85" class="w-full bg-slate-800 border border-slate-600 rounded p-1.5 text-white font-bold">
-          </div>
-          <div>
-            <label class="text-[10px] text-slate-400">平台技术抽成 (%)</label>
-            <input id="store-platform" type="number" value="15" class="w-full bg-slate-800 border border-slate-600 rounded p-1.5 text-white font-bold">
-          </div>
-        </div>
-        <button onclick="saveRule('WELLNESS_STORE', 'store-platform', 'store-tech')" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg font-bold transition-all">
-          更新并同步到店分成
-        </button>
-      </div>
-
-      <!-- 2. 突发维修 -->
-      <div class="bg-slate-900/60 p-3 rounded-xl space-y-2 border border-slate-700/50">
-        <div class="flex justify-between items-center font-bold">
-          <span class="text-amber-400">🟠 活力橙 · 突发急修 (REPAIR)</span>
-          <span class="text-slate-400 text-[10px]">水管/电路/开锁师傅</span>
-        </div>
-        <div class="grid grid-cols-3 gap-2 pt-1">
-          <div>
-            <label class="text-[10px] text-slate-400">技师分成 (%)</label>
-            <input id="repair-tech" type="number" value="90" class="w-full bg-slate-800 border border-slate-600 rounded p-1.5 text-white font-bold">
-          </div>
-          <div>
-            <label class="text-[10px] text-slate-400">平台抽成 (%)</label>
-            <input id="repair-platform" type="number" value="10" class="w-full bg-slate-800 border border-slate-600 rounded p-1.5 text-white font-bold">
-          </div>
-          <div>
-            <label class="text-[10px] text-slate-400">抢单席位线索费 (RM)</label>
-            <input id="repair-lead" type="number" value="5" class="w-full bg-slate-800 border border-slate-600 rounded p-1.5 text-white font-bold">
-          </div>
-        </div>
-        <button onclick="saveRule('REPAIR', 'repair-platform', 'repair-tech', 50, 'repair-lead')" class="w-full bg-amber-600 hover:bg-amber-500 py-2 rounded-lg font-bold transition-all">
-          更新并同步急修分账与席位费
-        </button>
-      </div>
-    </section>
-
-    <!-- 运维治理与升级维护模式 -->
-    <section class="bg-slate-800 border border-slate-700 p-4 rounded-2xl space-y-3 text-xs shadow-md">
-      <span class="font-bold text-sm text-slate-200 block border-b border-slate-700 pb-2">🛠️ 平台运维治理与停机维护控制</span>
-      <div class="flex justify-between items-center">
-        <div>
-          <p class="font-bold">全局升级维护模式</p>
-          <p class="text-[10px] text-slate-400">开启后客户端暂停发起新下单与充值，保障数据库升级安全</p>
-        </div>
-        <button id="btn-toggle-maint" onclick="toggleMaintenance()" class="px-4 py-2 bg-rose-600/20 text-rose-400 border border-rose-500/40 rounded-xl font-bold hover:bg-rose-600 hover:text-white transition-all">
-          切换维护模式
-        </button>
-      </div>
-    </section>
-
-    <!-- 快速链接导航 -->
-    <footer class="grid grid-cols-3 gap-2 text-center text-xs">
-      <a href="/VgoMainUI.html" class="bg-slate-800 py-2.5 rounded-xl border border-slate-700 text-teal-400 hover:bg-slate-700">📱 顾客端</a>
-      <a href="/merchant.html" class="bg-slate-800 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-700">🏪 商家核销端</a>
-      <a href="/tech.html" class="bg-slate-800 py-2.5 rounded-xl border border-slate-700 text-amber-400 hover:bg-slate-700">👨‍🔧 师傅抢单端</a>
-    </footer>
-
+  <!-- 全平台实时运营核心指标大盘 (双市场核算) -->
+  <div class="metrics-container">
+    <div class="metric-box">
+      <div class="metric-title">今日全平台流水 (GMV)</div>
+      <div class="metric-val" style="color: #38BDF8;" id="metricGMV">RM 48,920.00</div>
+      <div class="metric-trend"><span class="trend-up">↑ 18.4%</span> 较昨日同时段</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-title">平台净佣金抽成 (10-15%)</div>
+      <div class="metric-val" style="color: #34D399;" id="metricCommission">RM 6,115.00</div>
+      <div class="metric-trend"><span class="trend-up">↑ 15.2%</span> 资金托管中</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-title">今日已归集法定税费</div>
+      <div class="metric-val" style="color: #FBBF24;" id="metricTax">RM 3,913.60</div>
+      <div class="metric-trend" id="metricTaxLabel"><i class="fas fa-landmark"></i> 8% SST 专户</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-title">全城实时在线手艺人</div>
+      <div class="metric-val" style="color: #FB923C;" id="metricArtisans">142 位</div>
+      <div class="metric-trend"><span class="trend-up">● 94%</span> 履约就绪率</div>
+    </div>
   </div>
 
+  <!-- 五大总控模块 Tab 切换 -->
+  <div class="admin-nav-tabs">
+    <button class="tab-item-btn active" id="hq_tab_dispatch" onclick="switchHQTab('dispatch')">
+      <i class="fas fa-tower-broadcast"></i> 全城工单实时调度
+    </button>
+    <button class="tab-item-btn" id="hq_tab_artisan" onclick="switchHQTab('artisan')">
+      <i class="fas fa-id-card-clip"></i> 手艺人资质与 KYC 审核
+    </button>
+    <button class="tab-item-btn" id="hq_tab_merchant" onclick="switchHQTab('merchant')">
+      <i class="fas fa-store"></i> 实体商户入驻审批
+    </button>
+    <button class="tab-item-btn" id="hq_tab_finance" onclick="switchHQTab('finance')">
+      <i class="fas fa-scale-balanced"></i> 双市场财税与资金清算
+    </button>
+    <button class="tab-item-btn" id="hq_tab_dispute" onclick="switchHQTab('dispute')">
+      <i class="fas fa-shield-halved"></i> 争议仲裁与存证中心
+    </button>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 模块一：全城工单实时调度大盘 (Live Dispatch View) -->
+  <!-- ======================================================== -->
+  <div class="admin-view-panel active" id="view_dispatch">
+    <div class="console-card">
+      <div class="console-card-header">
+        <div>
+          <h3 style="font-size: 15px; font-weight: 900;"><i class="fas fa-route" style="color:#0284C7;"></i> 实时工单调度全景状态流</h3>
+          <p style="font-size: 11px; color:#94A3B8; margin-top:2px;">实时追踪全城手艺人与商户订单从发起到验收的全生命周期</p>
+        </div>
+        <button class="btn-action-sm btn-press" style="background:#0284C7; color:#fff;" onclick="simulateNewIncomingDispatch()">
+          <i class="fas fa-plus"></i> 模拟注入新派单
+        </button>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="console-table">
+          <thead>
+            <tr>
+              <th>工单编号</th>
+              <th>服务项目 / 类别</th>
+              <th>客户联络</th>
+              <th>作业地址</th>
+              <th>接单手艺人 / 技师</th>
+              <th>实收金额</th>
+              <th>状态流转</th>
+              <th>总控调度</th>
+            </tr>
+          </thead>
+          <tbody id="dispatchTableBody">
+            <!-- 动态渲染 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 模块二：手艺人资质与 KYC 审核 (Artisan KYC View) -->
+  <!-- ======================================================== -->
+  <div class="admin-view-panel" id="view_artisan">
+    <div class="console-card">
+      <div class="console-card-header">
+        <div>
+          <h3 style="font-size: 15px; font-weight: 900;"><i class="fas fa-user-check" style="color:#0D9488;"></i> 手艺人资质与无犯罪背调审查</h3>
+          <p style="font-size: 11px; color:#94A3B8; margin-top:2px;">所有上门服务人员必须 100% 通过身份核实与专业证书认证</p>
+        </div>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="console-table">
+          <thead>
+            <tr>
+              <th>申请手艺人</th>
+              <th>主修工种</th>
+              <th>提交资质与证书</th>
+              <th>背调状态</th>
+              <th>从业年限</th>
+              <th>审核决议</th>
+            </tr>
+          </thead>
+          <tbody id="artisanKYCTableBody">
+            <!-- 动态渲染手艺人审批列表 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 模块三：实体商户准入审批 (Merchant Onboarding View) -->
+  <!-- ======================================================== -->
+  <div class="admin-view-panel" id="view_merchant">
+    <div class="console-card">
+      <div class="console-card-header">
+        <div>
+          <h3 style="font-size: 15px; font-weight: 900;"><i class="fas fa-building" style="color:#EA580C;"></i> 实体门店营业执照与场地审查</h3>
+          <p style="font-size: 11px; color:#94A3B8; margin-top:2px;">审核通过后，该商户的实景相册、服务与价格将即时上架平台大厅</p>
+        </div>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="console-table">
+          <thead>
+            <tr>
+              <th>店铺全称</th>
+              <th>经营品类</th>
+              <th>实体地址</th>
+              <th>营业执照注册号</th>
+              <th>抽成费率</th>
+              <th>审核决议</th>
+            </tr>
+          </thead>
+          <tbody id="merchantAuditTableBody">
+            <!-- 动态渲染商户准入审批列表 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 模块四：双市场财税与资金清算 (Finance View) -->
+  <!-- ======================================================== -->
+  <div class="admin-view-panel" id="view_finance">
+    <div class="console-card">
+      <div class="console-card-header">
+        <div>
+          <h3 style="font-size: 15px; font-weight: 900;"><i class="fas fa-sack-dollar" style="color:#FBBF24;"></i> 多币种法定财税与提现对账中心</h3>
+          <p style="font-size: 11px; color:#94A3B8; margin-top:2px;">新马双币独立账户隔离，支持 SST / GST 财务归集与 DuitNow / PayNow 批量打款</p>
+        </div>
+        <button class="btn-action-sm btn-press" style="background:#10B981; color:#fff;" onclick="executeBatchPayout()">
+          <i class="fas fa-money-bill-transfer"></i> 执行 DuitNow 批量代发
+        </button>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; margin-bottom:16px;">
+        <div style="background:#131C2E; border:1px solid #334155; border-radius:14px; padding:14px;">
+          <div style="font-size:11px; color:#94A3B8;">🇲🇾 马来西亚账户 (MYR) - 8% SST 归集户</div>
+          <div style="font-size:20px; font-weight:900; color:#38BDF8; margin-top:4px;">RM 184,200.00</div>
+          <div style="font-size:10.5px; color:#64748B; margin-top:2px;">待结算给手艺人/商户：RM 142,100.00</div>
+        </div>
+        <div style="background:#131C2E; border:1px solid #334155; border-radius:14px; padding:14px;">
+          <div style="font-size:11px; color:#94A3B8;">🇸🇬 新加坡账户 (SGD) - 9% GST 归集户</div>
+          <div style="font-size:20px; font-weight:900; color:#34D399; margin-top:4px;">S$ 42,600.00</div>
+          <div style="font-size:10.5px; color:#64748B; margin-top:2px;">待结算给手艺人/商户：S$ 34,800.00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 模块五：争议仲裁与存证中心 (Dispute Center View) -->
+  <!-- ======================================================== -->
+  <div class="admin-view-panel" id="view_dispute">
+    <div class="console-card">
+      <div class="console-card-header">
+        <div>
+          <h3 style="font-size: 15px; font-weight: 900;"><i class="fas fa-gavel" style="color:#DC2626;"></i> 争议与投诉仲裁 (调取照片存证)</h3>
+          <p style="font-size: 11px; color:#94A3B8; margin-top:2px;">通过比对施工/服务前后的时间水印存证照片，判定赔付与资金清算</p>
+        </div>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="console-table">
+          <thead>
+            <tr>
+              <th>争议工单</th>
+              <th>客户诉求</th>
+              <th>涉事手艺人</th>
+              <th>存证核验 (Before / After)</th>
+              <th>涉及争议金额</th>
+              <th>仲裁裁决</th>
+            </tr>
+          </thead>
+          <tbody id="disputeTableBody">
+            <!-- 动态渲染争议单据 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 引入全局组件与核心模块 -->
+  <script src="../core/dialogEngine.js"></script>
+
   <script>
-    async function loadMerchants() {
-      try {
-        const res = await fetch("/api/v1/admin/merchants");
-        const d = await res.json();
-        const box = document.getElementById("merchant-audit-list");
-        if (d.success && d.data.length > 0) {
-          box.innerHTML = d.data.map(m => {
-            const statusClass = m.status === 'APPROVED' 
-              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
-              : (m.status === 'REJECTED' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30');
-            return `
-              <div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 space-y-1.5">
-                <div class="flex justify-between items-center font-bold">
-                  <span class="text-white text-xs">${m.shop_name}</span>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-mono ${statusClass}">${m.status}</span>
-                </div>
-                <p class="text-slate-400 text-[10px]">🏢 SSM: <span class="font-mono text-slate-200">${m.ssm_no}</span> | 📞 ${m.phone}</p>
-                <p class="text-slate-400 text-[10px]">📍 ${m.address}</p>
-                ${m.status === 'PENDING' ? `
-                  <div class="grid grid-cols-2 gap-2 pt-2">
-                    <button onclick="auditMerchant(${m.id}, 'APPROVED')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-xs transition-all">✓ 批准入驻</button>
-                    <button onclick="auditMerchant(${m.id}, 'REJECTED')" class="bg-rose-600/30 text-rose-300 hover:bg-rose-600 hover:text-white font-bold py-1.5 rounded-lg text-xs transition-all">✕ 驳回</button>
-                  </div>
-                ` : ''}
-              </div>
-            `;
-          }).join('');
+    let currentHQMarket = 'MY';
+    let currentHQTab = 'dispatch';
+
+    // 1. 全城工单数据源
+    let liveOrders = [
+      { id: 'VG-2026-8821', name: '墙体暗管爆裂急性抢修', customer: 'Mr. Kevin (0128172166)', addr: '亚庇滨海大道 商业大厦 3 楼', artisan: '陈工 (高级水电工程师)', amount: 'RM 86.40', status: 'WORKING' },
+      { id: 'VG-2026-8822', name: '办公室肩颈深度筋膜解结', customer: '陈雅文 (0168923112)', addr: '加雅街 8 号 公寓', artisan: 'Lisa 师姐 (高级推拿师)', amount: 'RM 78.00', status: 'COMPLETED' },
+      { id: 'VG-2026-8823', name: '全犬猫专业精修剪毛', customer: 'Sarah (0143892019)', addr: '达迈住宅区 12B', artisan: '阿明 (特级宠物造型师)', amount: 'RM 90.00', status: 'DISPATCHING' },
+      { id: 'VG-2026-8824', name: '日韩系轻奢睫毛嫁接', customer: 'Wong (0198823190)', addr: '市中心 临海湾', artisan: 'Queenie (认证美睫师)', amount: 'RM 110.00', status: 'WORKING' }
+    ];
+
+    // 2. 手艺人 KYC 审批数据源
+    let kycArtisans = [
+      { id: 'k_01', name: '张建军', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80', skill: '水电/暖通工程师', cert: '大马电工认证 (PW4) · 无犯罪记录', bgCheck: '通过', exp: '12年' },
+      { id: 'k_02', name: '王敏 (Grace)', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80', skill: '高级理疗推拿师', cert: '中医药学会推拿理疗持证 · 护士背景', bgCheck: '通过', exp: '8年' },
+      { id: 'k_03', name: '刘佩珊', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80', skill: '宠物造型美容师', cert: 'CKU 宠物美容师 A 级证书', bgCheck: '审核中', exp: '5年' }
+    ];
+
+    // 3. 商户审批数据源
+    let merchantApplications = [
+      { id: 'm_app_01', name: '静心泉·养生美学生活馆', category: '理疗养生', addr: '亚庇市中心 88 商厦 2 楼', regNo: 'SSM-202409811M', rate: '10%' },
+      { id: 'm_app_02', name: '旺旺萌宠沙龙·洗护中心', category: '宠物美容', addr: '加雅街商业区 24 号', regNo: 'SSM-202311029K', rate: '10%' }
+    ];
+
+    // 4. 争议单据数据源
+    let disputeCases = [
+      { id: 'DISP-9901', orderId: 'VG-2026-7719', issue: '客户投诉墙面轻微划痕，要求赔偿材料费', artisan: '黄师傅 (冷气技工)', amount: 'RM 50.00', status: 'PENDING' }
+    ];
+
+    function switchHQMarket(market) {
+      currentHQMarket = market;
+      document.getElementById('btnHQMY').classList.toggle('active', market === 'MY');
+      document.getElementById('btnHQSG').classList.toggle('active', market === 'SG');
+
+      if (market === 'MY') {
+        document.getElementById('metricGMV').innerText = 'RM 48,920.00';
+        document.getElementById('metricCommission').innerText = 'RM 6,115.00';
+        document.getElementById('metricTax').innerText = 'RM 3,913.60';
+        document.getElementById('metricTaxLabel').innerHTML = '<i class="fas fa-landmark"></i> 8% SST 专户';
+      } else {
+        document.getElementById('metricGMV').innerText = 'S$ 18,450.00';
+        document.getElementById('metricCommission').innerText = 'S$ 2,580.00';
+        document.getElementById('metricTax').innerText = 'S$ 1,660.50';
+        document.getElementById('metricTaxLabel').innerHTML = '<i class="fas fa-landmark"></i> 9% GST 专户';
+      }
+      window.vgoDialog.toast(`已切换至 ${market === 'MY' ? '马来西亚' : '新加坡'} 运营大盘`);
+    }
+
+    function switchHQTab(tab) {
+      currentHQTab = tab;
+      document.querySelectorAll('.tab-item-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.admin-view-panel').forEach(p => p.classList.remove('active'));
+
+      const btn = document.getElementById('hq_tab_' + tab);
+      if (btn) btn.classList.add('active');
+      const panel = document.getElementById('view_' + tab);
+      if (panel) panel.classList.add('active');
+
+      window.vgoDialog.vibrate(10);
+    }
+
+    // 渲染工单调度列表
+    function renderDispatchTable() {
+      const tbody = document.getElementById('dispatchTableBody');
+      tbody.innerHTML = liveOrders.map(o => {
+        let badge = '<span class="badge-chip badge-dispatching">待接单</span>';
+        if (o.status === 'WORKING') badge = '<span class="badge-chip badge-working">履约中</span>';
+        if (o.status === 'COMPLETED') badge = '<span class="badge-chip badge-completed">已验收</span>';
+
+        return `
+          <tr>
+            <td style="font-weight:900; color:#38BDF8;">${o.id}</td>
+            <td style="font-weight:800;">${o.name}</td>
+            <td style="color:#CBD5E1;">${o.customer}</td>
+            <td style="font-size:11.5px; color:#94A3B8;">${o.addr}</td>
+            <td style="font-weight:800; color:#34D399;">${o.artisan}</td>
+            <td style="font-weight:900; color:#F87171;">${o.amount}</td>
+            <td>${badge}</td>
+            <td>
+              <button class="btn-action-sm btn-press" style="background:#334155; color:#F8FAFC;" onclick="viewOrderTrace('${o.id}')">详情</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 渲染手艺人 KYC 审核列表
+    function renderKYCTable() {
+      const tbody = document.getElementById('artisanKYCTableBody');
+      tbody.innerHTML = kycArtisans.map(k => `
+        <tr>
+          <td>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <img class="table-avatar" src="${k.avatar}">
+              <span style="font-weight:900;">${k.name}</span>
+            </div>
+          </td>
+          <td style="font-weight:800; color:#0D9488;">${k.skill}</td>
+          <td style="font-size:11.5px; color:#CBD5E1;">${k.cert}</td>
+          <td><span class="badge-chip ${k.bgCheck === '通过' ? 'badge-completed' : 'badge-pending'}">${k.bgCheck}</span></td>
+          <td style="color:#94A3B8;">${k.exp}</td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-action-sm btn-approve btn-press" onclick="approveArtisan('${k.id}', '${k.name}')">批准通过</button>
+              <button class="btn-action-sm btn-reject btn-press" onclick="rejectArtisan('${k.id}', '${k.name}')">驳回</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // 渲染商户准入审批列表
+    function renderMerchantAuditTable() {
+      const tbody = document.getElementById('merchantAuditTableBody');
+      tbody.innerHTML = merchantApplications.map(m => `
+        <tr>
+          <td style="font-weight:900;">${m.name}</td>
+          <td style="color:#0284C7; font-weight:800;">${m.category}</td>
+          <td style="font-size:11.5px; color:#94A3B8;">${m.addr}</td>
+          <td style="font-weight:800; color:#FBBF24;">${m.regNo}</td>
+          <td style="font-weight:800;">${m.rate}</td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-action-sm btn-approve btn-press" onclick="approveMerchant('${m.id}', '${m.name}')">准入上架</button>
+              <button class="btn-action-sm btn-reject btn-press" onclick="rejectMerchant('${m.id}', '${m.name}')">要求补件</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // 渲染争议仲裁单据
+    function renderDisputeTable() {
+      const tbody = document.getElementById('disputeTableBody');
+      tbody.innerHTML = disputeCases.map(d => `
+        <tr>
+          <td style="font-weight:900; color:#DC2626;">${d.id}<br><span style="font-size:10px; color:#94A3B8;">${d.orderId}</span></td>
+          <td style="color:#CBD5E1;">${d.issue}</td>
+          <td style="font-weight:800; color:#FBBF24;">${d.artisan}</td>
+          <td>
+            <button class="btn-action-sm btn-press" style="background:#334155; color:#38BDF8;" onclick="viewEvidencePhotos('${d.id}')">
+              <i class="fas fa-images"></i> 调取施工前后照片
+            </button>
+          </td>
+          <td style="font-weight:900; color:#F87171;">${d.amount}</td>
+          <td>
+            <button class="btn-action-sm btn-arbitrate btn-press" onclick="resolveDispute('${d.id}')">裁决退款/理赔</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // 动作交互逻辑
+    function simulateNewIncomingDispatch() {
+      const newId = 'VG-2026-' + Math.floor(1000 + Math.random() * 9000);
+      liveOrders.unshift({
+        id: newId,
+        name: '空调冷媒检测与补充',
+        customer: 'Mr. Lau (0112891823)',
+        addr: '亚庇临海公寓 18楼',
+        artisan: '系统调度中...',
+        amount: 'RM 120.00',
+        status: 'DISPATCHING'
+      });
+      renderDispatchTable();
+      window.vgoDialog.toast(`新工单 [${newId}] 已接入调度队列！`);
+    }
+
+    function viewOrderTrace(id) {
+      window.vgoDialog.showModalAlert('工单流转全景审计', `工单编号: <strong>${id}</strong><br>状态机记录: 客户下单 ➔ 系统广播 ➔ 手艺人接单 ➔ GPS 现场签到 ➔ 电子小票核销完工。`, { iconClass: 'fas fa-timeline', btnBg: '#0284C7' });
+    }
+
+    function approveArtisan(id, name) {
+      window.vgoDialog.confirm('核准手艺人认证', `确认批准手艺人 <strong>${name}</strong> 正式入驻？<br>批准后该人员将获得接单与钱包提现权限。`, { confirmBg: '#0D9488' }).then(ok => {
+        if (ok) {
+          kycArtisans = kycArtisans.filter(k => k.id !== id);
+          renderKYCTable();
+          window.vgoDialog.toast(`手艺人 [${name}] 已成功核发执业资格！`);
         }
-      } catch(e) {}
+      });
     }
 
-    async function auditMerchant(id, action) {
-      try {
-        const res = await fetch("/api/v1/admin/merchants/audit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-admin-key": "VGO_SECURE_TOKEN_2026" },
-          body: JSON.stringify({ merchant_id: id, action })
-        });
-        const d = await res.json();
-        alert(d.message);
-        loadMerchants();
-      } catch(e) {
-        alert("审批操作失败");
-      }
+    function rejectArtisan(id, name) {
+      window.vgoDialog.toast(`已向手艺人 [${name}] 发送证书补件通知`, 'warn');
     }
 
-    async function saveRule(type, platformId, techId, cap = 0, leadId = null) {
-      const pRate = document.getElementById(platformId).value;
-      const tRate = document.getElementById(techId).value;
-      const lead = leadId ? document.getElementById(leadId).value : 0;
-      try {
-        const res = await fetch('/api/v1/admin/rules/update', {
-          method: 'POST',
-          headers: { "Content-Type": "application/json", "x-admin-key": "VGO_SECURE_TOKEN_2026" },
-          body: JSON.stringify({ service_type: type, platform_rate: pRate, tech_rate: tRate, cap_amount: cap, lead_fee: lead })
-        });
-        const d = await res.json();
-        alert(d.message || '规则已更新');
-      } catch (e) {
-        alert('网络通信异常');
-      }
+    function approveMerchant(id, name) {
+      window.vgoDialog.confirm('准入实体商户', `确认核准门店 <strong>${name}</strong> 上架？<br>审核通过后，该商户信息与服务货架将实时同步至顾客大厅。`, { confirmBg: '#0D9488' }).then(ok => {
+        if (ok) {
+          merchantApplications = merchantApplications.filter(m => m.id !== id);
+          renderMerchantAuditTable();
+          window.vgoDialog.toast(`商户 [${name}] 门店已正式同步上架大厅！`);
+        }
+      });
     }
 
-    async function toggleMaintenance() {
-      try {
-        const res = await fetch('/api/v1/admin/maintenance/toggle', { method: 'POST' });
-        const d = await res.json();
-        alert(d.message);
-      } catch(e) {
-        alert('操作失败');
-      }
+    function rejectMerchant(id, name) {
+      window.vgoDialog.toast(`已通知商户 [${name}] 补齐营业执照盖章件`, 'warn');
     }
 
-    loadMerchants();
+    function viewEvidencePhotos(id) {
+      window.vgoDialog.showModalAlert('仲裁存证核验', `已调取云端存储的带时间水印存证：<br>• 施工前照片：进门水路完好记录<br>• 完工后照片：PPR 管热熔规范打压记录<br>系统判定：手艺人操作合规。`, { iconClass: 'fas fa-shield-check', btnBg: '#0D9488' });
+    }
+
+    function resolveDispute(id) {
+      window.vgoDialog.confirm('争议裁决与先行赔付', `确认从平台质保金中先行向客户赔付 <strong>RM 50.00</strong>？`, { confirmBg: '#DC2626' }).then(ok => {
+        if (ok) {
+          disputeCases = disputeCases.filter(d => d.id !== id);
+          renderDisputeTable();
+          window.vgoDialog.toast('仲裁完成：款项已原路退回客户账户');
+        }
+      });
+    }
+
+    function executeBatchPayout() {
+      window.vgoDialog.confirm('执行 DuitNow 批量代发', '确认向 14 位手艺人与 2 家商户执行今日营业额代发结算？<br>结算总金额: <strong>RM 3,680.00</strong>', { confirmBg: '#10B981' }).then(ok => {
+        if (ok) window.vgoDialog.toast('DuitNow 批量打款成功！银行清算流水已生成');
+      });
+    }
+
+    window.onload = () => {
+      renderDispatchTable();
+      renderKYCTable();
+      renderMerchantAuditTable();
+      renderDisputeTable();
+    };
   </script>
 </body>
 </html>
