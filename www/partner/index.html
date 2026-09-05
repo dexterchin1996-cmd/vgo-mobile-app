@@ -3,168 +3,141 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Vgo Partner - 手艺人兼职接单与集采中枢</title>
+  <title>Vgo Partner - 手艺人接单与成长合伙人中枢</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../assets/css/design-system.css">
   <style>
     body { background: #090D16; color: #F8FAFC; padding-bottom: calc(75px + var(--safe-bottom)); user-select: none; }
-    .partner-header-dock {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px);
-      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid #1E293B;
+    .partner-top {
+      position: sticky; top: 0; z-index: 100; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px);
+      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1E293B;
     }
-    .partner-tab-strip {
-      display: flex; gap: 8px; padding: 10px 16px; background: #0F172A; border-bottom: 1px solid #1E293B;
+    .tier-badge-card {
+      margin: 10px 16px; background: linear-gradient(135deg, #1E293B, #0F172A);
+      border: 1.5px solid #F59E0B; border-radius: 16px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
     }
-    .p-tab-btn {
-      flex: 1; padding: 9px; border-radius: 12px; background: #1E293B; border: 1px solid #334155;
-      color: #94A3B8; font-size: 12px; font-weight: 800; cursor: pointer; text-align: center;
+    .tab-btn-row { display: flex; gap: 8px; padding: 10px 16px; background: #0F172A; }
+    .p-nav-btn {
+      flex: 1; padding: 8px; border-radius: 12px; background: #1E293B; border: 1px solid #334155;
+      color: #94A3B8; font-size: 11.5px; font-weight: 800; cursor: pointer; text-align: center;
     }
-    .p-tab-btn.active { background: #0D9488; color: #fff; border-color: #0D9488; }
-    .partner-view-panel { display: none; padding: 14px 16px; }
-    .partner-view-panel.active { display: block; }
+    .p-nav-btn.active { background: #0D9488; color: #fff; border-color: #0D9488; }
+    .view-box { display: none; padding: 0 16px; }
+    .view-box.active { display: block; }
   </style>
 </head>
 <body>
 
-  <!-- 顶部中枢 -->
-  <header class="partner-header-dock">
+  <header class="partner-top">
     <div style="display:flex; align-items:center; gap:10px;">
-      <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80" style="width:40px; height:40px; border-radius:50%; border:2px solid #0D9488; object-fit:cover;">
+      <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80" style="width:38px; height:38px; border-radius:50%; border:2px solid #0D9488; object-fit:cover;">
       <div>
         <div style="font-size:14px; font-weight:900;">Lisa 师姐 / 陈工</div>
-        <div style="font-size:10px; color:#10B981;">● 听单雷达工作中 · 兼职信用 4.98</div>
+        <div style="font-size:10px; color:#10B981;">● 听单就绪 · 已通过 PDPA 实名认证</div>
       </div>
     </div>
-    <button class="btn-press" style="background:#EA580C; border:none; color:#fff; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:800;" onclick="triggerSafetyShield()">
-      <i class="fas fa-shield-halved"></i> 安全盾
+    <button class="btn-press" style="background:#0D9488; color:#fff; border:none; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:800;" onclick="showReferralProgram()">
+      <i class="fas fa-gift"></i> 推荐奖 RM50
     </button>
   </header>
 
-  <!-- 工作台三大主板：接单大厅 / 现场防起价加价锁 / 官方耗材商城 -->
-  <div class="partner-tab-strip">
-    <button class="p-tab-btn active" id="btnP_hall" onclick="switchPartnerView('hall')"><i class="fas fa-radar"></i> 听单大厅</button>
-    <button class="p-tab-btn" id="btnP_lock" onclick="switchPartnerView('lock')"><i class="fas fa-lock"></i> 现场增项锁</button>
-    <button class="p-tab-btn" id="btnP_store" onclick="switchPartnerView('store')"><i class="fas fa-store"></i> 物料商城</button>
+  <!-- 星级阶梯抽成卡片 (接满100单直降至8%) -->
+  <div class="tier-badge-card">
+    <div>
+      <div style="font-size:11px; color:#F59E0B; font-weight:800;" id="tierTitle">金牌王者合伙人 (当前满 128 单)</div>
+      <div style="font-size:18px; font-weight:900; color:#fff; margin-top:2px;">抽成仅 8% <small style="font-size:11px; color:#10B981; font-weight:600;">(比新师傅多赚 7%)</small></div>
+      <div style="font-size:10px; color:#94A3B8; margin-top:2px;">享 SOCSO 官方社保津贴 RM150/月</div>
+    </div>
+    <i class="fas fa-crown" style="font-size:32px; color:#F59E0B;"></i>
   </div>
 
-  <!-- 视图一：接单大厅 -->
-  <div class="partner-view-panel active" id="view_hall">
-    <div style="background:#131C2E; border:1px solid #1E293B; border-radius:18px; padding:18px; text-align:center; margin-bottom:14px;">
-      <div style="width:60px; height:60px; border-radius:50%; background:rgba(13,148,136,0.15); border:2px solid #0D9488; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:22px; color:#0D9488;">
-        <i class="fas fa-tower-broadcast"></i>
-      </div>
-      <div style="font-size:14.5px; font-weight:900;">实时听单雷达运行正常</div>
-      <div style="font-size:11px; color:#94A3B8; margin-top:4px;">沙巴·亚庇 (覆盖半径 5.0 km) · 支持 Airbnb 急救派单</div>
-    </div>
+  <div class="tab-btn-row">
+    <button class="p-nav-btn active" id="pbtn_jobs" onclick="switchPV('jobs')"><i class="fas fa-radar"></i> 听单大厅</button>
+    <button class="p-nav-btn" id="pbtn_cam" onclick="switchPV('cam')"><i class="fas fa-camera"></i> 防作弊存证</button>
+    <button class="p-nav-btn" id="pbtn_bonus" onclick="switchPV('bonus')"><i class="fas fa-users"></i> 以老带新奖</button>
+  </div>
 
-    <!-- 待抢工单展示 -->
-    <div style="background:#1E293B; border:1.5px solid #0D9488; border-radius:18px; padding:16px;">
+  <!-- 视图 1：听单大厅 -->
+  <div class="view-box active" id="pv_jobs">
+    <div style="background:#131C2E; border:1px solid #1E293B; border-radius:18px; padding:16px; margin:12px 0;">
       <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-        <span style="font-size:10.5px; background:#FF385C; color:#fff; padding:2px 7px; border-radius:6px; font-weight:800;">Airbnb 民宿急救单</span>
-        <span style="font-size:11px; color:#F59E0B; font-weight:800;">20分急达承诺</span>
+        <span style="font-size:10.5px; background:#FF385C; color:#fff; padding:2px 7px; border-radius:6px; font-weight:800;">Airbnb 房东急救单</span>
+        <span style="font-size:11px; color:#F59E0B; font-weight:800;">20分急达</span>
       </div>
-      <div style="font-size:15.5px; font-weight:900;">【短租急救】智能门锁断电开锁与电池更换</div>
-      <div style="font-size:11.5px; color:#94A3B8; margin:4px 0 10px;"><i class="fas fa-map-pin"></i> 亚庇市中心 Jesselton Quay 民宿公寓 12楼</div>
+      <div style="font-size:15px; font-weight:900;">【民宿急修】密码门锁卡死 / 应急外接供电开门</div>
+      <div style="font-size:11px; color:#94A3B8; margin:4px 0 10px;"><i class="fas fa-location-dot"></i> 亚庇市中心 Jesselton Quay 12楼 · 距您 1.1km</div>
       <div style="display:flex; justify-content:space-between; align-items:baseline;">
-        <div style="font-size:17px; font-weight:900; color:#F87171;">净到手: RM 102.00</div>
-        <button class="btn-press" style="background:#0D9488; border:none; color:#fff; padding:8px 18px; border-radius:10px; font-weight:900;" onclick="window.vgoDialog.toast('抢单成功！已启动 Airbnb 房东紧急托管导航')">抢单</button>
+        <div style="font-size:16px; font-weight:900; color:#F87171;">预计净到手: RM 110.40 (8%抽成)</div>
+        <button class="btn-press" style="background:#0D9488; color:#fff; border:none; padding:8px 18px; border-radius:10px; font-weight:900;" onclick="window.vgoDialog.toast('抢单成功！已启动原生导航')">立即抢单</button>
       </div>
     </div>
   </div>
 
-  <!-- 视图二：现场二次加价确认锁 (杜绝师傅坐地起价和客户纠纷) -->
-  <div class="partner-view-panel" id="view_lock">
-    <div style="background:#1E293B; border:1px solid #334155; border-radius:18px; padding:18px;">
-      <div style="font-size:14.5px; font-weight:900; color:#EA580C; margin-bottom:6px;"><i class="fas fa-lock"></i> 现场增项与配件申请锁</div>
-      <div style="font-size:11.5px; color:#94A3B8; line-height:1.45; margin-bottom:12px;">
-        严禁线下私自加收现金！现场如发现损坏需更换零件，请在此拍摄损坏件照片并勾选平台标准配件。系统将自动给客户手机发送确认小票，<strong>客户线上点击确认扣款后方可动工</strong>。
-      </div>
-
-      <div style="height:90px; border:1.5px dashed #475569; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#94A3B8; font-size:11px; margin-bottom:12px; cursor:pointer;" onclick="window.vgoDialog.toast('已拍摄损坏件存证照片')">
-        <i class="fas fa-camera" style="font-size:20px; margin-bottom:4px;"></i>
-        <span>拍照上传损坏配件 (带时间水印)</span>
-      </div>
-
-      <label style="font-size:11.5px; color:#CBD5E1; display:block; margin-bottom:4px;">选择平台标准配件：</label>
-      <select id="lockPartSelect" style="width:100%; padding:10px; border-radius:10px; background:#0F172A; border:1px solid #334155; color:#fff; font-size:13px; margin-bottom:12px;">
-        <option value="35">加装全铜加厚主控阀门总成 (+RM 35.00)</option>
-        <option value="60">入户高水压专用调压防爆阀 (+RM 60.00)</option>
-        <option value="40">空调冷媒 R32/R410A 原厂补注 (+RM 40.00)</option>
-      </select>
-
-      <button class="btn-press" style="width:100%; min-height:46px; background:#EA580C; border:none; border-radius:12px; color:#fff; font-weight:900; font-size:14px;" onclick="sendLockQuoteToCustomer()">
-        向客户手机推送增项账单
+  <!-- 视图 2：防作弊水印相机 -->
+  <div class="view-box" id="pv_cam">
+    <div style="background:#1E293B; border:1px solid #334155; border-radius:18px; padding:16px; margin:12px 0;">
+      <div style="font-size:14px; font-weight:900; margin-bottom:6px;"><i class="fas fa-camera" style="color:#0D9488;"></i> 防作弊带时间与坐标水印现场存证</div>
+      <div style="font-size:11px; color:#94A3B8; margin-bottom:12px;">施工前必须在此拍照，系统将强制打入 GPS 经纬度与只读时间戳。</div>
+      
+      <input type="file" id="cameraInput" accept="image/*" capture="camera" style="display:none;" onchange="handleEvidenceFile(this)">
+      <button class="btn-press" style="width:100%; min-height:44px; background:#0284C7; color:#fff; border:none; border-radius:12px; font-weight:800; font-size:13px; margin-bottom:12px;" onclick="document.getElementById('cameraInput').click()">
+        <i class="fas fa-camera"></i> 启动相机拍照存证
       </button>
+
+      <div id="watermarkPreview" style="border-radius:12px; overflow:hidden; display:none;"></div>
     </div>
   </div>
 
-  <!-- 视图三：手艺人端物料集采商城 (供应链变现) -->
-  <div class="partner-view-panel" id="view_store">
-    <div style="font-size:13px; font-weight:800; color:#94A3B8; margin-bottom:10px;">Vgo 官方认证耗材集采 (佣金可直接抵扣)</div>
-    <div id="artisanStoreGrid" style="display:flex; flex-direction:column; gap:10px;">
-      <!-- 动态挂载物料商城 -->
+  <!-- 视图 3：以老带新推荐赏金 -->
+  <div class="view-box" id="pv_bonus">
+    <div style="background:#1E293B; border:1px solid #334155; border-radius:18px; padding:16px; margin:12px 0;">
+      <div style="font-size:14px; font-weight:900; color:#F59E0B; margin-bottom:6px;"><i class="fas fa-coins"></i> 邀请师傅加入 · 坐享现金分红</div>
+      <div style="font-size:11.5px; color:#94A3B8; margin-bottom:12px;">新师傅通过您的邀请码认证入驻并完成首 10 单，您将立得 <strong>RM 50 现金奖励</strong>！</div>
+      
+      <div style="background:#0F172A; border:1px solid #334155; border-radius:12px; padding:12px; text-align:center; margin-bottom:12px;">
+        <div style="font-size:11px; color:#94A3B8;">您的专属邀请码</div>
+        <div style="font-size:22px; font-weight:900; color:#10B981; letter-spacing:4px; margin:4px 0;" id="refCodeText">VGO8888</div>
+        <button class="btn-press" style="background:#0D9488; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-size:11.5px; font-weight:800;" onclick="copyReferralLink()">复制邀请链接发群</button>
+      </div>
     </div>
   </div>
-
-  <!-- 底部固定导航 -->
-  <nav style="position:fixed; bottom:0; left:0; right:0; height:calc(56px + var(--safe-bottom)); padding-bottom:var(--safe-bottom); background:rgba(15,23,42,0.98); backdrop-filter:blur(16px); display:flex; border-top:1px solid #1E293B; z-index:120;">
-    <div class="dock-cell active" onclick="switchPartnerView('hall')"><i class="fas fa-radar" style="font-size:18px;"></i><span>接单大厅</span></div>
-    <div class="dock-cell" onclick="switchPartnerView('lock')"><i class="fas fa-lock" style="font-size:18px;"></i><span>增项锁</span></div>
-    <div class="dock-cell" onclick="switchPartnerView('store')"><i class="fas fa-store" style="font-size:18px;"></i><span>集采商城</span></div>
-    <div class="dock-cell" onclick="window.vgoDialog.toast('当前可提现净额: RM 842.60')"><i class="fas fa-wallet" style="font-size:18px;"></i><span>兼职钱包</span></div>
-  </nav>
 
   <script src="../core/dialogEngine.js"></script>
-  <script src="../modules/catalogDatabase.js"></script>
-  <script src="../modules/advancedSafety.js"></script>
+  <script src="../core/nativeBridge.js"></script>
+  <script src="../modules/growthEngine.js"></script>
 
   <script>
-    function switchPartnerView(view) {
-      document.querySelectorAll('.p-tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.partner-view-panel').forEach(p => p.classList.remove('active'));
-
-      const btn = document.getElementById('btnP_' + view);
-      if (btn) btn.classList.add('active');
-      const panel = document.getElementById('view_' + view);
-      if (panel) panel.classList.add('active');
-
-      if (view === 'store') renderArtisanStore();
+    function switchPV(v) {
+      document.querySelectorAll('.p-nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view-box').forEach(b => b.classList.remove('active'));
+      document.getElementById('pbtn_' + v).classList.add('active');
+      document.getElementById('pv_' + v).classList.add('active');
     }
 
-    function renderArtisanStore() {
-      const container = document.getElementById('artisanStoreGrid');
-      const items = window.vgoCatalog.artisanStore || [];
-      container.innerHTML = items.map(m => `
-        <div style="display:flex; gap:10px; background:#1E293B; border:1px solid #334155; border-radius:14px; padding:10px; align-items:center;">
-          <img src="${m.image}" style="width:60px; height:60px; border-radius:10px; object-fit:cover;">
-          <div style="flex:1;">
-            <div style="font-weight:900; font-size:13px;">${m.name}</div>
-            <div style="font-size:10.5px; color:#94A3B8; margin:2px 0;">${m.desc}</div>
-            <div style="font-weight:900; font-size:14px; color:#10B981;">RM ${m.price.toFixed(2)} / ${m.unit}</div>
-          </div>
-          <button class="btn-press" style="background:#0D9488; border:none; color:#fff; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:800;" onclick="window.vgoDialog.toast('已发起集采订购，将从本周钱包自动抵扣')">订购</button>
-        </div>
-      `).join('');
+    async function handleEvidenceFile(input) {
+      if (input.files && input.files[0]) {
+        window.vgoDialog.toast('正在提取 GPS 坐标并合成防篡改水印...');
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const stampedUrl = await window.vgoBridge.captureWatermarkEvidence(e.target.result, '现场履约开工存证');
+          const preview = document.getElementById('watermarkPreview');
+          preview.style.display = 'block';
+          preview.innerHTML = `<img src="${stampedUrl}" style="width:100%; display:block; border-radius:12px;">`;
+          window.vgoDialog.toast('🎉 防篡改存证照片已生成并存入云端！', 'success');
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
     }
 
-    function sendLockQuoteToCustomer() {
-      const extra = document.getElementById('lockPartSelect').value;
-      window.vgoSafety.createSecondaryQuote('VG-8821', '全铜主控阀门总成', extra, 'photo_url');
-      window.vgoDialog.showModalAlert(
-        '已推送加价确认小票',
-        `已向客户手机推送 <strong>+RM ${Number(extra).toFixed(2)}</strong> 增项加价账单。<br><span style="color:#F59E0B;">客户在 App 上点击确认支付后，您的手机将收到动工指令，保障双方无纠纷。</span>`,
-        { btnBg: '#EA580C' }
-      );
+    function showReferralProgram() {
+      switchPV('bonus');
     }
 
-    function triggerSafetyShield() {
-      window.vgoDialog.showModalAlert(
-        '手艺人出工人身安全盾',
-        '• 每次接单均自动享有保额高达 RM 100,000 的意外伤害人身险<br>• 如在现场遭遇客户不当骚扰或人身威胁，长按静默 SOS 直接连线调度中心',
-        { btnBg: '#EA580C' }
-      );
+    function copyReferralLink() {
+      const code = document.getElementById('refCodeText').innerText;
+      const text = `【加入 Vgo 手艺人合伙人】兼职赚取额外丰厚收入！用我的专属邀请码 [${code}] 注册，完成首单享额外补贴：https://vgo.life/join?ref=${code}`;
+      navigator.clipboard ? navigator.clipboard.writeText(text) : null;
+      window.vgoDialog.showModalAlert('邀请文案已复制！', '可直接粘贴发至您的手艺人同乡群/微信群/WhatsApp 群，新师傅完工后赏金自动入账兼职钱包。', { btnBg: '#0D9488' });
     }
   </script>
 </body>
