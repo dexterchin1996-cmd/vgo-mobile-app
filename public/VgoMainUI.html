@@ -1,350 +1,626 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <script src="/config.js"></script>
-  <script src="/app-native-bridge.js"></script>
-  <script src="/push-manager.js"></script>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vgo 顾客端 | 随叫随到</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Native App Optimization -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Vgo">
-  <meta name="format-detection" content="telephone=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Vgo - 城市综合技术服务与突发急修平台</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* 适配 iPhone 灵动岛 / 底部横条 Safe Area 与原生弹性手势 */
-    body {
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      overscroll-behavior-y: contain;
+    :root {
+      --primary-color: #0284C7;
+      --primary-dark: #0369A1;
+      --primary-light: #E0F2FE;
+      --urgent-color: #EA580C;
+      --urgent-light: #FFEDD5;
+      --success-color: #10B981;
+      --bg-surface: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text-main: #0F172A;
+      --text-sub: #475569;
+      --text-muted: #94A3B8;
+      --border-line: #E2E8F0;
+      --safe-bottom: env(safe-area-inset-bottom, 16px);
     }
-    input, textarea { user-select: auto; }
+    * { margin:0; padding:0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-surface);
+      color: var(--text-main);
+      padding-bottom: calc(72px + var(--safe-bottom));
+      user-select: none;
+    }
+
+    /* 顶部导航与国家市场切换 */
+    .app-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      padding: 12px 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border-line);
+    }
+    .brand-cluster { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--urgent-color) 45%, var(--primary-color) 45%);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 22px; box-shadow: 0 4px 12px rgba(2,132,199,0.25);
+    }
+    .brand-title h1 { font-size: 17px; font-weight: 900; line-height: 1.2; }
+    .brand-loc { font-size: 11px; color: var(--text-sub); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+
+    .market-pill-group {
+      display: flex; background: #EEF2F6; padding: 3px; border-radius: 20px; border: 1px solid var(--border-line);
+    }
+    .market-pill {
+      border: none; background: transparent; padding: 6px 12px; border-radius: 16px;
+      font-size: 11.5px; font-weight: 700; color: var(--text-sub); cursor: pointer; transition: all 0.2s;
+    }
+    .market-pill.active { background: #FFFFFF; color: var(--text-main); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+
+    /* 24H 应急抢修专属触发区 */
+    .urgent-dispatch-hero {
+      margin: 14px 16px;
+      background: linear-gradient(135deg, #FFF7ED, #FFEDD5);
+      border: 1.5px solid #FDBA74;
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 4px 14px rgba(234, 88, 12, 0.08);
+    }
+    .urgent-info { display: flex; align-items: center; gap: 12px; }
+    .pulse-urgent-icon {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: var(--urgent-color); color: #fff;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+      animation: pulse-ring 2s infinite;
+    }
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.6); }
+      70% { box-shadow: 0 0 0 12px rgba(234, 88, 12, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); }
+    }
+    .urgent-headline { font-size: 14px; font-weight: 900; color: #9A3412; }
+    .urgent-subline { font-size: 11px; color: #C2410C; margin-top: 2px; }
+    .urgent-cta-btn {
+      background: var(--urgent-color); color: #fff; border: none;
+      padding: 9px 15px; border-radius: 22px; font-size: 12px; font-weight: 800; cursor: pointer;
+    }
+
+    /* 业务导航 Segments */
+    .category-segments {
+      display: flex; margin: 0 16px 14px; gap: 10px;
+    }
+    .segment-tab {
+      flex: 1; padding: 12px; border-radius: 14px; background: #fff;
+      border: 2px solid transparent; display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02); cursor: pointer; transition: all 0.2s;
+    }
+    .segment-tab.active-urgent { border-color: var(--urgent-color); background: #FFF7ED; }
+    .segment-tab.active-standard { border-color: var(--primary-color); background: #F0F9FF; }
+    .segment-icon-box {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+
+    /* 服务卡片网格系统 */
+    .section-bar {
+      margin: 16px 16px 10px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .section-title { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+    .tax-badge {
+      font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 8px;
+      background: #E2E8F0; color: var(--text-sub);
+    }
+    .service-grid-2col {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px;
+    }
+    .service-card {
+      background: #fff; border-radius: 16px; border: 1px solid var(--border-line);
+      overflow: hidden; display: flex; flex-direction: column; cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .service-card:active { transform: scale(0.98); }
+    .card-visual {
+      height: 110px; position: relative; display: flex; align-items: center; justify-content: center;
+      font-size: 38px;
+    }
+    .tier-badge {
+      position: absolute; top: 8px; left: 8px; padding: 3px 8px; border-radius: 6px;
+      font-size: 10px; font-weight: 800; color: #fff;
+    }
+    .card-content { padding: 12px; display: flex; flex-direction: column; flex: 1; }
+    .card-title { font-size: 13.5px; font-weight: 800; line-height: 1.35; }
+    .card-spec { font-size: 11px; color: var(--text-sub); margin: 6px 0 10px; display: flex; gap: 8px; }
+    .card-action-row {
+      margin-top: auto; display: flex; align-items: baseline; justify-content: space-between;
+    }
+    .price-num { font-size: 16px; font-weight: 900; color: #DC2626; }
+    .open-btn {
+      width: 28px; height: 28px; border-radius: 50%; border: none;
+      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px;
+    }
+
+    /* 认证技术专家轮播 */
+    .experts-slider {
+      display: flex; gap: 12px; overflow-x: auto; padding: 0 16px 8px; scrollbar-width: none;
+    }
+    .experts-slider::-webkit-scrollbar { display: none; }
+    .expert-card {
+      min-width: 150px; background: #fff; border: 1px solid var(--border-line);
+      border-radius: 14px; padding: 14px 10px; text-align: center; cursor: pointer;
+    }
+    .expert-avatar {
+      width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .expert-name { font-size: 13px; font-weight: 800; }
+    .expert-tag { font-size: 10.5px; color: var(--text-sub); margin-top: 2px; }
+    .expert-star { font-size: 11px; color: #F59E0B; margin-top: 4px; font-weight: 700; }
+
+    /* 底部专属导航栏 */
+    .app-bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: calc(56px + var(--safe-bottom));
+      padding-bottom: var(--safe-bottom);
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(16px);
+      display: flex; border-top: 1px solid var(--border-line); z-index: 120;
+    }
+    .nav-tab {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; gap: 3px;
+    }
+    .nav-tab i { font-size: 18px; }
+    .nav-tab.active { color: var(--primary-color); }
+
+    /* 浮动调度连接 */
+    .fab-dispatch {
+      position: fixed; right: 16px; bottom: calc(70px + var(--safe-bottom));
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #25D366; color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 26px; box-shadow: 0 4px 18px rgba(37,211,102,0.4); z-index: 110; cursor: pointer;
+    }
+
+    /* 商业级弹窗与交互抽屉 */
+    .drawer-scrim {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 200;
+      display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px);
+    }
+    .drawer-surface {
+      width: 100%; max-width: 520px; background: #fff; border-radius: 24px 24px 0 0;
+      padding: 20px 20px calc(20px + var(--safe-bottom)); max-height: 88vh; overflow-y: auto;
+      animation: slideUp 0.25s cubic-bezier(0, 0, 0.2, 1);
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .drawer-title { font-size: 18px; font-weight: 900; }
+    .drawer-close { font-size: 22px; color: var(--text-muted); cursor: pointer; border: none; background: none; }
+
+    .form-row { margin-bottom: 14px; }
+    .form-label { font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; display: block; }
+    .form-control {
+      width: 100%; padding: 11px 14px; border: 1.5px solid var(--border-line); border-radius: 12px;
+      font-size: 14px; outline: none; background: #F8FAFC; transition: border-color 0.2s;
+    }
+    .form-control:focus { border-color: var(--primary-color); background: #fff; }
+    .btn-submit-order {
+      width: 100%; padding: 15px; border: none; border-radius: 14px;
+      color: #fff; font-weight: 900; font-size: 15px; cursor: pointer; margin-top: 12px;
+    }
+
+    .contact-card-btn {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; border-radius: 14px; margin-bottom: 10px; background: #F8FAFC;
+      border: 1px solid var(--border-line); text-decoration: none; color: inherit; cursor: pointer;
+    }
+    .toast-pill {
+      position: fixed; top: 75px; left: 50%; transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.92); color: #fff; padding: 9px 20px;
+      border-radius: 24px; font-size: 12px; font-weight: 700; z-index: 300; display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
   </style>
-
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col items-center">
+<body>
 
-    <!-- 新马双市场区域切换条 (保持原布局无损叠加) -->
-    <div class="flex items-center justify-between px-4 py-2 bg-slate-800/90 border-b border-slate-700/60 text-xs">
-      <span class="text-slate-400 font-medium text-[11px]">📍 当前服务区域</span>
-      <div class="flex bg-slate-900/80 p-0.5 rounded-lg border border-slate-700">
-        <button id="btn-reg-my" onclick="switchRegion('MY')" class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-teal-500 text-slate-900 transition-all">
-          🇲🇾 马来西亚 (RM)
-        </button>
-        <button id="btn-reg-sg" onclick="switchRegion('SG')" class="px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-white transition-all">
-          🇸🇬 新加坡 (S$)
-        </button>
+  <div id="toast" class="toast-pill"></div>
+
+  <!-- 头部控制栏 -->
+  <header class="app-header">
+    <div class="brand-cluster">
+      <div class="brand-mark">V</div>
+      <div class="brand-title">
+        <h1>Vgo 平台</h1>
+        <div class="brand-loc"><i class="fas fa-location-dot" style="color: var(--primary-color);"></i> <span id="locLabel">沙巴·亚庇 (Kota Kinabalu)</span></div>
       </div>
     </div>
+    <div class="market-pill-group">
+      <button id="pillMY" class="market-pill active" onclick="switchRegion('MY')">🇲🇾 马来西亚</button>
+      <button id="pillSG" class="market-pill" onclick="switchRegion('SG')">🇸🇬 新加坡</button>
+    </div>
+  </header>
 
-  <div class="w-full max-w-md bg-white min-h-screen shadow-2xl flex flex-col justify-between relative">
-
-    <!-- 顶部状态栏 -->
-    <header class="bg-slate-900 text-white p-4 shadow-md flex justify-between items-center">
+  <!-- 紧急抢修入口 -->
+  <div class="urgent-dispatch-hero">
+    <div class="urgent-info">
+      <div class="pulse-urgent-icon"><i class="fas fa-wrench"></i></div>
       <div>
-        <div class="text-xl font-black tracking-wider bg-gradient-to-r from-emerald-400 to-amber-400 bg-clip-text text-transparent">Vgo 客户端</div>
-        <div class="text-[10px] text-slate-400">Asia City 核心服务网格</div>
-      </div>
-      <div class="text-xs bg-slate-800 px-3 py-1 rounded-full text-emerald-400 font-semibold border border-slate-700">
-        🟢 随时待命
-      </div>
-    </header>
-
-    <!-- 双核切换 Tab -->
-    <div class="grid grid-cols-2 bg-slate-800 text-white text-xs font-bold text-center border-t border-slate-700">
-      <button id="tab-wellness" onclick="switchCore('wellness')" class="py-3 bg-emerald-600 border-b-2 border-emerald-400 transition-all">🟢 翡翠青·理疗预约</button>
-      <button id="tab-repair" onclick="switchCore('repair')" class="py-3 text-slate-400 hover:text-white transition-all">🟠 活力橙·突发维修</button>
-    </div>
-
-    <!-- 主体视图区 -->
-    <main class="p-4 flex-1 space-y-4 overflow-y-auto text-xs">
-
-      <!-- 1. 翡翠青模块 -->
-      <section id="panel-wellness" class="space-y-3">
-        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-3">
-          <div class="flex justify-between items-center font-bold text-emerald-900 text-sm">
-            <span>泰式按摩养生旗舰店</span>
-            <span class="text-emerald-700">RM 120.00</span>
-          </div>
-          <p class="text-slate-600">📍 Asia City 旗舰店 | ⏱️ 60分钟全身经络精油推拿</p>
-          <select id="w-type" class="w-full p-2.5 border rounded-lg bg-white font-medium">
-            <option value="STORE">到店体验 (Asia City 旗舰店)</option>
-            <option value="OUTCALL">酒店客房外派 (如 Hyatt Room 808)</option>
-          </select>
-          <div class="flex gap-2">
-            <select id="w-pay-method" class="w-full p-2.5 border rounded-lg bg-white font-medium text-slate-700">
-              <option value="TNG_EWALLET">💳 Touch 'n Go eWallet</option>
-              <option value="DUITNOW">📲 DuitNow QR 转账</option>
-              <option value="GRABPAY">🟢 GrabPay 电子钱包</option>
-            </select>
-          </div>
-          <button id="btn-book-wellness" onclick="bookWellness()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold shadow transition-all flex items-center justify-center gap-2">
-            <span>支付托管并生成 6 位核销码</span>
-          </button>
-        </div>
-        <div id="wellness-result" class="space-y-2"></div>
-      </section>
-
-      <!-- 2. 活力橙模块 -->
-      <section id="panel-repair" class="hidden space-y-3">
-        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl space-y-3">
-          <p class="font-bold text-amber-900 text-sm">🟠 发布突发维修/技术求助</p>
-          <input id="r-title" type="text" placeholder="故障标题 (如: 厨房水管爆裂漏水)" class="w-full p-2.5 border rounded-lg bg-white">
-          <select id="r-category" class="w-full p-2.5 border rounded-lg bg-white">
-            <option value="plumbing">水管/漏水维修</option>
-            <option value="electrical">电路/跳闸维修</option>
-            <option value="locksmith">开锁/换锁</option>
-          </select>
-          <textarea id="r-desc" placeholder="详细描述故障与现场状况..." class="w-full p-2.5 border rounded-lg bg-white h-16"></textarea>
-          <input id="r-budget" type="number" placeholder="期望预算 (RM)" class="w-full p-2.5 border rounded-lg bg-white">
-          <button onclick="postRepairDemand()" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold shadow transition-all">
-            广播需求至附近师傅大厅
-          </button>
-        </div>
-
-        <div id="bids-section" class="hidden space-y-2">
-          <div class="flex justify-between items-center font-bold text-slate-700">
-            <span>⚡ 实时师傅报价雷达</span>
-            <button onclick="loadBids()" class="text-indigo-600 underline">🔄 刷新</button>
-          </div>
-          <div id="bids-list" class="space-y-2"></div>
-        </div>
-      </section>
-
-    </main>
-
-    <!-- 个人中心 / 合规弹窗 (App Store & Google Play 必备) -->
-    <div id="modal-profile" class="hidden absolute inset-0 bg-black/60 z-50 flex flex-col justify-end backdrop-blur-sm transition-all">
-      <div class="bg-white rounded-t-3xl p-5 space-y-4 shadow-2xl">
-        <div class="flex justify-between items-center border-b pb-3">
-          <div class="font-black text-slate-800 text-base">👤 用户合规与设置中心</div>
-          <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-700 text-lg font-bold">✕</button>
-        </div>
-        <div class="space-y-2 text-xs text-slate-600">
-          <div class="bg-slate-50 p-3 rounded-xl flex justify-between items-center">
-            <span>当前登录身份</span>
-            <span class="font-bold text-slate-800">VIP 客户 #1</span>
-          </div>
-          <div class="bg-slate-50 p-3 rounded-xl flex justify-between items-center">
-            <span>数据服务区域</span>
-            <span class="font-bold text-emerald-600">Kota Kinabalu (Sabah)</span>
-          </div>
-          <div class="bg-slate-50 p-3 rounded-xl flex justify-between items-center cursor-pointer hover:bg-slate-100" onclick="alert('已开启端到端订单加密及数据合规脱敏保护。')">
-            <span>📜 平台用户服务协议与隐私条款</span>
-            <span class="text-slate-400">查看 ›</span>
-          </div>
-        </div>
-        <div class="pt-2 border-t space-y-2">
-          <button onclick="deregisterAccount()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 py-3 rounded-xl font-bold transition-all text-center">
-            注销账号并彻底清除个人数据
-          </button>
-          <p class="text-[10px] text-center text-slate-400">符合应用商店合规规范，注销后所有订单及个人资料将永久擦除</p>
-        </div>
+        <div class="urgent-headline">24H 突发急修调度通道</div>
+        <div class="urgent-subline">爆管 / 跳闸 / 门锁卡死 · 智能调度系统</div>
       </div>
     </div>
+    <button class="urgent-cta-btn" onclick="openUrgentModal()">一键报修</button>
+  </div>
 
-    <!-- 底部 Tab 导航 -->
-    <nav class="border-t bg-white flex justify-around py-3 text-[11px] font-bold text-slate-500 relative z-10">
-      <button onclick="switchCore('wellness')" class="flex flex-col items-center text-emerald-600"><span class="text-base">🏠</span><span>首页</span></button>
-      <button onclick="alert('当前有 1 笔进行中的履约订单')" class="flex flex-col items-center hover:text-slate-800"><span class="text-base">📋</span><span>订单</span></button>
-      <button onclick="alert('即时通讯功能已就绪，技师接单后可直接在线沟通')" class="flex flex-col items-center hover:text-slate-800"><span class="text-base">💬</span><span>消息</span></button>
-      <button onclick="openProfileModal()" class="flex flex-col items-center hover:text-slate-800"><span class="text-base">👤</span><span>我的</span></button>
-    </nav>
+  <!-- 两大业务大类选项 -->
+  <div class="category-segments">
+    <div id="segUrgent" class="segment-tab active-urgent" onclick="selectSegment('urgent')">
+      <div class="segment-icon-box" style="background: var(--urgent-light); color: var(--urgent-color);"><i class="fas fa-bolt"></i></div>
+      <div>
+        <div style="font-size: 13.5px; font-weight: 900; color: #9A3412;">应急快修工程</div>
+        <div style="font-size: 11px; color: var(--text-sub);">全天候即时上门响应</div>
+      </div>
+    </div>
+    <div id="segStandard" class="segment-tab" onclick="selectSegment('standard')">
+      <div class="segment-icon-box" style="background: var(--primary-light); color: var(--primary-color);"><i class="fas fa-screwdriver-wrench"></i></div>
+      <div>
+        <div style="font-size: 13.5px; font-weight: 900; color: var(--primary-dark);">维保与安装工程</div>
+        <div style="font-size: 11px; color: var(--text-sub);">标准工时 / 预约施工</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 服务网格列表 -->
+  <div class="section-bar">
+    <span class="section-title" id="gridTitle"><i class="fas fa-bolt" style="color: var(--urgent-color);"></i> 应急快修项目</span>
+    <span class="tax-badge" id="taxIndicator">已含 8% SST 税费</span>
+  </div>
+
+  <div class="service-grid-2col" id="serviceGrid">
+    <!-- JS 动态渲染 -->
+  </div>
+
+  <!-- 平台认证技术人员 -->
+  <div class="section-bar" style="margin-top: 24px;">
+    <span class="section-title"><i class="fas fa-user-shield" style="color: var(--primary-color);"></i> 平台实名认证技术工程师</span>
+    <span class="tax-badge">资质审核 · 平台承保</span>
+  </div>
+
+  <div class="experts-slider">
+    <div class="expert-card" onclick="bookDirectTech('陈工', '高级水电急修工程师', '4.98', '1,420')">
+      <div class="expert-avatar" style="background: #F1F5F9;"><i class="fas fa-user-gear"></i></div>
+      <div class="expert-name">陈工</div>
+      <div class="expert-tag">资深水电急修师</div>
+      <div class="expert-star"><i class="fas fa-star"></i> 4.98 (1.4k)</div>
+    </div>
+    <div class="expert-card" onclick="bookDirectTech('黄工', '暖通空调与制冷技师', '4.95', '980')">
+      <div class="expert-avatar" style="background: var(--primary-light); color: var(--primary-color);"><i class="fas fa-snowflake"></i></div>
+      <div class="expert-name">黄工</div>
+      <div class="expert-tag">制冷与暖通专家</div>
+      <div class="expert-star"><i class="fas fa-star"></i> 4.95 (980)</div>
+    </div>
+    <div class="expert-card" onclick="bookDirectTech('林工', '智能门锁与安防技师', '5.00', '760')">
+      <div class="expert-avatar" style="background: #F1F5F9;"><i class="fas fa-key"></i></div>
+      <div class="expert-name">林工</div>
+      <div class="expert-tag">锁具与智能安防</div>
+      <div class="expert-star"><i class="fas fa-star"></i> 5.00 (760)</div>
+    </div>
+    <div class="expert-card" onclick="bookDirectTech('Azman 工长', '高压管网与结构维保', '4.96', '1,210')">
+      <div class="expert-avatar" style="background: var(--primary-light); color: var(--primary-color);"><i class="fas fa-hard-hat"></i></div>
+      <div class="expert-name">Azman 工长</div>
+      <div class="expert-tag">管网疏通/结构维保</div>
+      <div class="expert-star"><i class="fas fa-star"></i> 4.96 (1.2k)</div>
+    </div>
+  </div>
+
+  <!-- WhatsApp 快速客服浮标 -->
+  <div class="fab-dispatch" onclick="openContactCenter()" title="联络调度中枢">
+    <i class="fab fa-whatsapp"></i>
+  </div>
+
+  <!-- 底部固定导航栏 -->
+  <nav class="app-bottom-nav">
+    <div class="nav-tab active" onclick="switchBottomTab(this, 'home')">
+      <i class="fas fa-compass"></i>
+      <span>服务大厅</span>
+    </div>
+    <div class="nav-tab" onclick="openUrgentModal()">
+      <i class="fas fa-bolt" style="color: var(--urgent-color);"></i>
+      <span>快速呼叫</span>
+    </div>
+    <div class="nav-tab" onclick="openContactCenter()">
+      <i class="fas fa-headset"></i>
+      <span>调度客服</span>
+    </div>
+    <div class="nav-tab" onclick="openAccountCenter()">
+      <i class="fas fa-user-circle"></i>
+      <span>我的账户</span>
+    </div>
+  </nav>
+
+  <!-- 下单预约抽屉 -->
+  <div id="bookingDrawer" class="drawer-scrim">
+    <div class="drawer-surface">
+      <div class="drawer-header">
+        <h3 class="drawer-title" id="drawerTitle">派发工单</h3>
+        <button class="drawer-close" onclick="closeDrawer('bookingDrawer')">&times;</button>
+      </div>
+      <div style="background: #F1F5F9; padding: 12px; border-radius: 12px; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 14px;">
+          <span id="orderItemName">服务项目</span>
+          <span id="orderItemPrice" style="color: #DC2626;">RM 0.00</span>
+        </div>
+        <div id="orderItemSpec" style="font-size: 11px; color: var(--text-sub); margin-top: 4px;">服务标准</div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">联络人姓名与电话</label>
+        <input type="text" id="inContact" class="form-control" placeholder="例如：林先生 0128172166">
+      </div>
+      <div class="form-row">
+        <label class="form-label">施工/故障详细地址</label>
+        <input type="text" id="inAddress" class="form-control" placeholder="大厦/住宅单元号，或现场详细描述">
+      </div>
+      <div class="form-row">
+        <label class="form-label">期望上门时间</label>
+        <input type="text" id="inSchedule" class="form-control" value="紧急即刻响应 / 30分钟急达">
+      </div>
+      <button class="btn-submit-order" id="btnConfirmDispatch" style="background: var(--urgent-color);" onclick="processOrderSubmission()">提交工单并呼叫工程师</button>
+    </div>
+  </div>
+
+  <!-- 平台调度中心弹窗 -->
+  <div id="contactDrawer" class="drawer-scrim">
+    <div class="drawer-surface">
+      <div class="drawer-header">
+        <h3 class="drawer-title">Vgo 调度中心直联渠道</h3>
+        <button class="drawer-close" onclick="closeDrawer('contactDrawer')">&times;</button>
+      </div>
+      <a class="contact-card-btn" href="https://wa.me/60128172166" target="_blank">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i class="fab fa-whatsapp" style="font-size: 26px; color: #25D366;"></i>
+          <div>
+            <div style="font-weight: 800; font-size: 13.5px;">WhatsApp 调度专线</div>
+            <div style="font-size: 11px; color: var(--text-sub);">+60128172166 (一键启动对话)</div>
+          </div>
+        </div>
+        <i class="fas fa-chevron-right" style="color: #94A3B8;"></i>
+      </a>
+      <a class="contact-card-btn" href="tel:01172691788">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i class="fas fa-phone-volume" style="font-size: 22px; color: var(--urgent-color);"></i>
+          <div>
+            <div style="font-weight: 800; font-size: 13.5px;">24H 突发抢修调度热线</div>
+            <div style="font-size: 11px; color: var(--text-sub);">01172691788 (即刻拨通)</div>
+          </div>
+        </div>
+        <i class="fas fa-chevron-right" style="color: #94A3B8;"></i>
+      </a>
+      <div class="contact-card-btn" onclick="copyContact('ventusspa', '官方支持微信号已复制')">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i class="fab fa-weixin" style="font-size: 24px; color: #07C160;"></i>
+          <div>
+            <div style="font-weight: 800; font-size: 13.5px;">微信支持 (WeChat)</div>
+            <div style="font-size: 11px; color: var(--text-sub);">ID: ventusspa (点击复制)</div>
+          </div>
+        </div>
+        <i class="fas fa-copy" style="color: #94A3B8;"></i>
+      </div>
+      <div class="contact-card-btn" onclick="copyContact('ventusspa123', 'Line 官方号已复制')">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i class="fab fa-line" style="font-size: 24px; color: #00C300;"></i>
+          <div>
+            <div style="font-weight: 800; font-size: 13.5px;">Line 官方频道</div>
+            <div style="font-size: 11px; color: var(--text-sub);">ID: ventusspa123 (点击复制)</div>
+          </div>
+        </div>
+        <i class="fas fa-copy" style="color: #94A3B8;"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 账户中心抽屉 -->
+  <div id="accountDrawer" class="drawer-scrim">
+    <div class="drawer-surface">
+      <div class="drawer-header">
+        <h3 class="drawer-title">客户账户</h3>
+        <button class="drawer-close" onclick="closeDrawer('accountDrawer')">&times;</button>
+      </div>
+      <div style="text-align: center; padding: 12px 0 20px;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary-light); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 10px;">
+          <i class="fas fa-user-shield"></i>
+        </div>
+        <div style="font-size: 16px; font-weight: 900;">Vgo 注册认证客户</div>
+        <div style="font-size: 12px; color: var(--text-sub); margin-top: 3px;">设备运行环境：移动端原生安全容器</div>
+      </div>
+      <div class="contact-card-btn" onclick="showToast('已激活急修专享补贴券：RM30')">
+        <span><i class="fas fa-ticket" style="color: var(--urgent-color); margin-right: 8px;"></i> 我的应急补贴券 (2 张可用)</span>
+        <span style="color: var(--urgent-color); font-weight: 800; font-size: 12px;">去使用</span>
+      </div>
+      <div class="contact-card-btn" onclick="showToast('高精度 GPS 定位校准成功')">
+        <span><i class="fas fa-location-crosshairs" style="color: var(--primary-color); margin-right: 8px;"></i> 重新校准作业定位</span>
+        <span style="font-size: 11px; color: var(--text-sub);">亚庇滨海核心区</span>
+      </div>
+    </div>
   </div>
 
   <script>
-    let activePostId = null;
+    // 应急急修服务库
+    const urgentItems = [
+      { id: 'u1', icon: 'fa-faucet-drip', name: '暗管爆裂 / 主水路严重漏水急修', time: '30分钟急达', pMY: 80, pSG: 60, tag: '紧急抢修', rating: '5.0 (1.4k)' },
+      { id: 'u2', icon: 'fa-bolt-lightning', name: '配电总闸跳闸 / 短路烧毁抢险', time: '30分钟急达', pMY: 90, pSG: 70, tag: '全天候响应', rating: '4.9 (980+)' },
+      { id: 'u3', icon: 'fa-snowflake', name: '冷气空调罢工 / 室内严重漏水急排', time: '45分钟到位', pMY: 75, pSG: 55, tag: '免拆速检', rating: '4.9 (1.1k)' },
+      { id: 'u4', icon: 'fa-key', name: '智能门锁锁死 / 紧急安全开锁换体', time: '20分钟急达', pMY: 100, pSG: 80, tag: '公安备案', rating: '5.0 (620+)' },
+      { id: 'u5', icon: 'fa-toilet', name: '主排污管道严重堵塞 / 机械高压疏通', time: '40分钟急达', pMY: 110, pSG: 85, tag: '专业机械', rating: '4.8 (830+)' },
+      { id: 'u6', icon: 'fa-shield-halved', name: '雨季屋面急性渗漏 / 结构应急防损', time: '1小时急达', pMY: 150, pSG: 120, tag: '工程级抢险', rating: '4.9 (340+)' }
+    ];
 
-    function switchCore(core) {
-      const isW = core === 'wellness';
-      document.getElementById('panel-wellness').classList.toggle('hidden', !isW);
-      document.getElementById('panel-repair').classList.toggle('hidden', isW);
-      document.getElementById('tab-wellness').className = isW ? "py-3 bg-emerald-600 text-white border-b-2 border-emerald-400 font-bold transition-all" : "py-3 text-slate-400 hover:text-white transition-all";
-      document.getElementById('tab-repair').className = !isW ? "py-3 bg-amber-500 text-white border-b-2 border-amber-300 font-bold transition-all" : "py-3 text-slate-400 hover:text-white transition-all";
-    }
+    // 标准维保与工程安装库
+    const standardItems = [
+      { id: 's1', icon: 'fa-fan', name: '分体/中央空调全机化学药水深度洗净', time: '预约上门', pMY: 120, pSG: 85, tag: '效能回升', rating: '4.9 (1.2k)' },
+      { id: 's2', icon: 'fa-plug', name: '入户配电箱升级改造 / 漏电保护调优', time: '标准作业', pMY: 130, pSG: 90, tag: '用电安防', rating: '5.0 (450+)' },
+      { id: 's3', icon: 'fa-video', name: '高清监控摄像与智能门禁布线安装', time: '全套调试', pMY: 160, pSG: 110, tag: '弱电工程', rating: '4.9 (530+)' },
+      { id: 's4', icon: 'fa-water', name: '全屋水质净化设备 / 智能增压泵改装', time: '水工规范', pMY: 140, pSG: 95, tag: '循环水路', rating: '4.8 (390+)' },
+      { id: 's5', icon: 'fa-tv', name: '超薄大屏电视挂装 / 嵌入式家电精装', time: '水平精校', pMY: 70, pSG: 50, tag: '无损安装', rating: '4.9 (720+)' },
+      { id: 's6', icon: 'fa-network-wired', name: '全屋光纤组网 / Mesh Wi-Fi 弱电调试', time: '信号满格', pMY: 150, pSG: 100, tag: '千兆测速', rating: '5.0 (310+)' }
+    ];
 
-    function openProfileModal() {
-      document.getElementById('modal-profile').classList.remove('hidden');
-    }
+    let currentRegion = 'MY';
+    let currentSegment = 'urgent';
+    let activeItem = null;
 
-    function closeProfileModal() {
-      document.getElementById('modal-profile').classList.add('hidden');
-    }
-
-    async function bookWellness() {
-      const type = document.getElementById('w-type').value;
-      const payMethod = document.getElementById('w-pay-method').value;
-      const btn = document.getElementById('btn-book-wellness');
-      btn.disabled = true;
-      btn.innerText = '正在提交订单并申请安全支付...';
-
-      try {
-        // 1. 创建订单
-        const orderRes = await fetch('/api/v1/orders/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ customer_id: 1, merchant_id: 1, service_id: 1, orderType: type, address: 'Asia City, Kota Kinabalu' })
-        });
-        const orderData = await orderRes.json();
-
-        if (orderData.success) {
-          const orderId = orderData.data.id;
-          const vCode = orderData.data.verification_code;
-
-          // 2. 自动调用聚合支付托管接口
-          const payRes = await fetch('/api/v1/payment/pay', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ order_id: orderId, payment_method: payMethod, amount: 120.00 })
-          });
-          const payData = await payRes.json();
-
-          document.getElementById('wellness-result').innerHTML = `
-            <div class="border border-emerald-300 bg-emerald-50 p-4 rounded-xl space-y-2 shadow-sm">
-              <div class="flex justify-between items-center border-b border-emerald-200 pb-2">
-                <span class="font-bold text-emerald-900 text-xs">🎉 担保交易已锁定 (已付款)</span>
-                <span class="bg-emerald-200 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-mono font-bold">${payMethod}</span>
-              </div>
-              <div class="text-center py-2 bg-white rounded-lg border border-emerald-100">
-                <p class="text-slate-500 text-[10px]">到店或技师上门出示此 6 位核销码：</p>
-                <p class="text-3xl font-mono font-black tracking-widest text-emerald-600">${vCode}</p>
-              </div>
-              <div class="text-[10px] text-slate-500 flex justify-between pt-1">
-                <span>交易流水号: <span class="font-mono text-slate-700">${payData.data ? payData.data.transaction_id : 'TXN_' + Date.now()}</span></span>
-                <span>托管金额: <strong class="text-emerald-700 font-bold">RM 120.00</strong></span>
-              </div>
-            </div>
-          `;
-        } else {
-          alert('下单失败: ' + (orderData.error || '系统异常'));
-        }
-      } catch(e) {
-        alert('网络请求异常，请检查服务器连接');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = '支付托管并生成 6 位核销码';
-      }
-    }
-
-    async function postRepairDemand() {
-      const title = document.getElementById('r-title').value;
-      const category = document.getElementById('r-category').value;
-      const description = document.getElementById('r-desc').value;
-      const budget = document.getElementById('r-budget').value;
-      if(!title || !budget) return alert('请完整填写故障标题与期望预算');
-
-      try {
-        const res = await fetch('/api/repair/demands', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ customer_id: 1, category, title, description, budget_estimate: budget, address: 'Asia City, Block B' })
-        });
-        const data = await res.json();
-        if(data.success) {
-          activePostId = data.data.id;
-          alert('🎉 需求广播成功！正在等待附近师傅报价...');
-          document.getElementById('bids-section').classList.remove('hidden');
-          setInterval(() => loadBids(), 3000);
-        }
-      } catch(e) { alert('发单失败'); }
-    }
-
-    async function loadBids() {
-      if(!activePostId) return;
-      try {
-        const res = await fetch(`/api/repair/demands/${activePostId}/bids`);
-        const data = await res.json();
-        const container = document.getElementById('bids-list');
-        if(data.success && data.data.length > 0) {
-          container.innerHTML = data.data.map(b => `
-            <div class="border p-3 rounded-xl bg-white space-y-1 shadow-sm border-l-4 border-l-amber-500">
-              <div class="flex justify-between font-bold">
-                <span>👨‍🔧 师傅 #${b.technician_id} <span class="text-amber-600 font-normal">★ 4.9</span></span>
-                <span class="text-amber-600 text-sm">RM ${b.quoted_price}</span>
-              </div>
-              <p class="text-slate-600">预计到达: ${b.estimated_arrival_minutes}分钟 |  备注: ${b.notes}</p>
-              <button onclick="lockRepairBid(${b.technician_id}, ${b.quoted_price})" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg font-bold mt-1 transition-all">
-                确认并托管锁定此报价 (RM ${b.quoted_price})
-              </button>
-            </div>
-          `).join('');
-        } else {
-          container.innerHTML = '<p class="text-center text-slate-400 py-3">正在等待附近师傅抢单报价...</p>';
-        }
-      } catch(e) {}
-    }
-
-    async function lockRepairBid(techId, price) {
-      if(!confirm(`确认托管支付 RM ${price} 锁定此师傅？服务满意后平台再行分账结算。`)) return;
-      try {
-        const res = await fetch('/api/v1/payment/pay', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ order_id: activePostId || 1, payment_method: 'TNG_EWALLET', amount: price })
-        });
-        const data = await res.json();
-        if(data.success) {
-          alert(`🎉 资金锁定成功！流水号: ${data.data.transaction_id}。师傅正赶往现场！`);
-        }
-      } catch(e) {
-        alert('支付锁定成功(离线兜底)');
-      }
-    }
-
-    async function deregisterAccount() {
-      if(!confirm('⚠️ 警告：账号注销为不可逆操作，将彻底擦除您的所有个人隐私与订单数据。确定继续吗？')) return;
-      try {
-        const res = await fetch('/api/v1/users/deregister', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: 1 })
-        });
-        const data = await res.json();
-        if(data.success) {
-          alert(data.message);
-          location.reload();
-        }
-      } catch(e) {
-        alert('网络请求失败');
-      }
-    }
-  </script>
-
-  <script>
-    let currentRegion = "MY";
-    async function switchRegion(code) {
-      currentRegion = code;
-      const btnMY = document.getElementById("btn-reg-my");
-      const btnSG = document.getElementById("btn-reg-sg");
+    function switchRegion(region) {
+      currentRegion = region;
+      document.getElementById('pillMY').classList.toggle('active', region === 'MY');
+      document.getElementById('pillSG').classList.toggle('active', region === 'SG');
       
-      if (code === "MY") {
-        btnMY.className = "px-2.5 py-1 rounded-md text-[11px] font-bold bg-teal-500 text-slate-900 transition-all";
-        btnSG.className = "px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-white transition-all";
+      if (region === 'MY') {
+        document.getElementById('locLabel').innerText = '沙巴·亚庇 (Kota Kinabalu)';
+        document.getElementById('taxIndicator').innerText = '已含 8% SST 税费';
       } else {
-        btnSG.className = "px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500 text-slate-900 transition-all";
-        btnMY.className = "px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-white transition-all";
+        document.getElementById('locLabel').innerText = '新加坡市中心 (Central Region)';
+        document.getElementById('taxIndicator').innerText = '已含 9% GST 税费';
+      }
+      renderServiceGrid();
+      showToast(`已切换至 ${region === 'MY' ? '马来西亚 (MYR)' : '新加坡 (SGD)'} 市场`);
+    }
+
+    function selectSegment(segment) {
+      currentSegment = segment;
+      const tU = document.getElementById('segUrgent');
+      const tS = document.getElementById('segStandard');
+      
+      if (segment === 'urgent') {
+        tU.className = 'segment-tab active-urgent';
+        tS.className = 'segment-tab';
+        document.getElementById('gridTitle').innerHTML = '<i class="fas fa-bolt" style="color: var(--urgent-color);"></i> 应急快修项目';
+      } else {
+        tU.className = 'segment-tab';
+        tS.className = 'segment-tab active-standard';
+        document.getElementById('gridTitle').innerHTML = '<i class="fas fa-screwdriver-wrench" style="color: var(--primary-color);"></i> 维保与工程安装';
+      }
+      renderServiceGrid();
+    }
+
+    function renderServiceGrid() {
+      const container = document.getElementById('serviceGrid');
+      const list = currentSegment === 'urgent' ? urgentItems : standardItems;
+      const isUrgent = currentSegment === 'urgent';
+      const currency = currentRegion === 'MY' ? 'RM' : 'S$';
+
+      container.innerHTML = list.map(item => {
+        const raw = currentRegion === 'MY' ? item.pMY : item.pSG;
+        const tax = currentRegion === 'MY' ? 0.08 : 0.09;
+        const finalPrice = Math.round(raw * (1 + tax));
+        
+        return `
+          <div class="service-card" onclick="openOrderDrawer('${item.id}')">
+            <div class="card-visual" style="background: ${isUrgent ? '#FFF7ED' : '#F0F9FF'}; color: ${isUrgent ? 'var(--urgent-color)' : 'var(--primary-color)'};">
+              <i class="fas ${item.icon}"></i>
+              <span class="tier-badge" style="background: ${isUrgent ? 'var(--urgent-color)' : 'var(--primary-color)'};">${item.tag}</span>
+            </div>
+            <div class="card-content">
+              <div class="card-title">${item.name}</div>
+              <div class="card-spec">
+                <span><i class="fas fa-clock"></i> ${item.time}</span>
+                <span><i class="fas fa-star" style="color:#F59E0B;"></i> ${item.rating}</span>
+              </div>
+              <div class="card-action-row">
+                <span class="price-num">${currency} ${finalPrice}</span>
+                <button class="open-btn" style="background: ${isUrgent ? 'var(--urgent-color)' : 'var(--primary-color)'};">
+                  <i class="fas fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openOrderDrawer(id) {
+      const all = [...urgentItems, ...standardItems];
+      const item = all.find(x => x.id === id);
+      if (!item) return;
+      activeItem = item;
+
+      const currency = currentRegion === 'MY' ? 'RM' : 'S$';
+      const raw = currentRegion === 'MY' ? item.pMY : item.pSG;
+      const tax = currentRegion === 'MY' ? 0.08 : 0.09;
+      const finalPrice = Math.round(raw * (1 + tax));
+
+      document.getElementById('orderItemName').innerText = item.name;
+      document.getElementById('orderItemPrice').innerText = `${currency} ${finalPrice} (含税预估)`;
+      document.getElementById('orderItemSpec').innerText = `响应规格：${item.time} · 平台技术合规质保`;
+
+      const btn = document.getElementById('btnConfirmDispatch');
+      if (item.id.startsWith('u')) {
+        btn.style.background = 'var(--urgent-color)';
+        btn.innerText = '紧急呼叫工程师抢单';
+      } else {
+        btn.style.background = 'var(--primary-color)';
+        btn.innerText = '确认预约维保工时';
       }
 
-      try {
-        const base = code === "SG" ? 68.00 : 120.00;
-        const res = await fetch("/api/v1/finance/calculate-quote", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ country_code: code, service_type: "WELLNESS_STORE", base_amount: base })
-        });
-        const d = await res.json();
-        if (d.success) {
-          console.log("已切换至市场: " + d.data.country + ", 币种: " + d.data.currency + ", 含税总计: " + d.data.symbol + " " + d.data.gross_total);
-        }
-      } catch(e) {}
+      document.getElementById('bookingDrawer').style.display = 'flex';
     }
-  </script>
 
+    function processOrderSubmission() {
+      const contact = document.getElementById('inContact').value.trim() || '客户';
+      const addr = document.getElementById('inAddress').value.trim() || '现场定位地址';
+      const time = document.getElementById('inSchedule').value.trim();
+      const sName = activeItem ? activeItem.name : 'Vgo 技术项目';
+
+      closeDrawer('bookingDrawer');
+      showToast('🚀 工单已进入调度队列，正在为您派单...');
+
+      const msg = encodeURIComponent(`【Vgo 商业工单】\n服务项目：${sName}\n联络信息：${contact}\n作业地址：${addr}\n时效要求：${time}\n国家区域：${currentRegion}`);
+      setTimeout(() => {
+        window.location.href = `https://wa.me/60128172166?text=${msg}`;
+      }, 500);
+    }
+
+    function bookDirectTech(name, title, rating, orders) {
+      showToast(`已指定首选技术工程师: ${name} (${title})`);
+      openUrgentModal();
+    }
+
+    function openUrgentModal() {
+      selectSegment('urgent');
+      openOrderDrawer('u1');
+    }
+    function openContactCenter() { document.getElementById('contactDrawer').style.display = 'flex'; }
+    function openAccountCenter() { document.getElementById('accountDrawer').style.display = 'flex'; }
+    function closeDrawer(id) { document.getElementById(id).style.display = 'none'; }
+
+    function copyContact(txt, tip) {
+      navigator.clipboard ? navigator.clipboard.writeText(txt) : null;
+      showToast(tip);
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2500);
+    }
+
+    function switchBottomTab(el, tab) {
+      document.querySelectorAll('.nav-tab').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+      if (tab === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        showToast('已返回服务大厅');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderServiceGrid();
+      document.querySelectorAll('.drawer-scrim').forEach(mask => {
+        mask.addEventListener('click', (e) => {
+          if (e.target === mask) mask.style.display = 'none';
+        });
+      });
+    });
+  </script>
 </body>
 </html>
