@@ -39,33 +39,36 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Configure App Identity & Entry
+      - name: Inject Entry & Package Identity
         run: |
-          echo "Configuring for ${{ matrix.app.name }}..."
-          sed -i "s/\"appId\": \".*\"/\"appId\": \"${{ matrix.app.package }}\"/" capacitor.config.json || true
-          sed -i "s/\"appName\": \".*\"/\"appName\": \"${{ matrix.app.display_name }}\"/" capacitor.config.json || true
-          
-          # 重定向默认加载入口
-          mkdir -p public
-          cp -r * public/ 2>/dev/null || true
+          echo "Building target: ${{ matrix.app.name }} with entry ${{ matrix.app.entry }}"
+          # 确保主入口定位到对应的角色页面
+          cp -f ${{ matrix.app.entry }} index.html
+          mkdir -p public www
           cp -f ${{ matrix.app.entry }} public/index.html
+          cp -f ${{ matrix.app.entry }} www/index.html
 
-      - name: Install Dependencies
+          # 动态更新应用名称
+          if [ -f "android/app/src/main/res/values/strings.xml" ]; then
+            sed -i "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">${{ matrix.app.display_name }}</string>|g" android/app/src/main/res/values/strings.xml
+          fi
+
+      - name: Install Build Tools
         run: |
           npm install -g @capacitor/cli @capacitor/core @capacitor/android
           npm install --legacy-peer-deps
 
-      - name: Sync Capacitor Android
+      - name: Sync Capacitor Android Assets
         run: |
           npx cap sync android
 
-      - name: Build Android Release APK
+      - name: Build Android Debug APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Upload APK Artifact
+      - name: Upload Output APK
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.app.name }}-APK
