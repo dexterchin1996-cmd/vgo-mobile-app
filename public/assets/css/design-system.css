@@ -1,69 +1,96 @@
 :root {
   --color-primary: #0284C7;
-  --color-primary-dark: #0369A1;
-  --color-primary-light: #E0F2FE;
   --color-teal: #0D9488;
   --color-teal-light: #CCFBF1;
   --color-teal-dark: #115E59;
   --color-orange: #EA580C;
-  --color-orange-light: #FFEDD5;
   --color-danger: #DC2626;
   --color-success: #10B981;
   --color-warning: #F59E0B;
-  --color-bg-body: #F8FAFC;
+  --color-bg: #F8FAFC;
   --color-surface: #FFFFFF;
   --color-text-main: #0F172A;
   --color-text-sub: #475569;
   --color-text-muted: #94A3B8;
   --color-border: #E2E8F0;
+  
+  /* 人体工学触控热区与圆角体系 */
+  --touch-target-min: 48px;
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
   --radius-full: 9999px;
-  --shadow-card: 0 4px 14px rgba(15, 23, 42, 0.05);
-  --shadow-float: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
-  --safe-top: env(safe-area-inset-top, 0px);
+  --shadow-center-modal: 0 25px 50px -12px rgba(15, 23, 42, 0.28);
   --safe-bottom: env(safe-area-inset-bottom, 16px);
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: var(--color-bg-body); color: var(--color-text-main);
+  background: var(--color-bg); color: var(--color-text-main);
   padding-bottom: calc(75px + var(--safe-bottom)); user-select: none;
+  overscroll-behavior-y: none;
 }
 
-/* 优雅原生骨架屏加载动效 */
-.skeleton-pulse {
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%;
-  animation: skeletonLoad 1.5s infinite;
+/* 居中模态弹窗视网膜容器 (Center Viewport Overlay) */
+.center-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.68);
+  backdrop-filter: blur(8px); z-index: 300;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; opacity: 0; pointer-events: none;
+  transition: opacity 0.24s ease;
 }
-@keyframes skeletonLoad { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.center-modal-overlay.active { opacity: 1; pointer-events: auto; }
 
-/* 全局悬浮气泡通知 (Toast) */
-.vgo-toast {
+/* 居中弹窗主体 (带阻尼回弹) */
+.center-modal-card {
+  width: 100%; max-width: 440px; max-height: 85vh;
+  background: #FFFFFF; border-radius: 24px;
+  box-shadow: var(--shadow-center-modal);
+  overflow-y: auto; overflow-x: hidden; position: relative;
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  will-change: transform;
+}
+.center-modal-overlay.active .center-modal-card {
+  transform: scale(1) translateY(0);
+}
+
+/* 人体工学顶部手势拖拽条 (Gesture Drag Handle) */
+.gesture-drag-bar-wrap {
+  width: 100%; height: 26px; display: flex; align-items: center; justify-content: center;
+  cursor: grab; touch-action: pan-y;
+}
+.gesture-drag-bar {
+  width: 44px; height: 5px; border-radius: var(--radius-full);
+  background: #CBD5E1; transition: background 0.2s;
+}
+.gesture-drag-bar-wrap:active .gesture-drag-bar { background: var(--color-teal); width: 50px; }
+
+/* 大拇指热区横向滑动机带 (Snap Scrolling Carousel) */
+.thumb-scroll-h {
+  display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+  padding: 0 16px 8px;
+}
+.thumb-scroll-h::-webkit-scrollbar { display: none; }
+.thumb-scroll-item {
+  scroll-snap-align: start; flex-shrink: 0;
+}
+
+/* 触控防疲劳靶心与微动效 */
+.touch-btn-scale {
+  min-height: var(--touch-target-min); display: inline-flex;
+  align-items: center; justify-content: center;
+  cursor: pointer; transition: transform 0.12s ease;
+}
+.touch-btn-scale:active { transform: scale(0.96); }
+
+/* 全局悬浮胶囊 Toast */
+.vgo-pill-toast {
   position: fixed; top: 75px; left: 50%; transform: translateX(-50%) translateY(-20px);
-  background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);
-  color: #fff; padding: 10px 20px; border-radius: var(--radius-full);
-  font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px;
-  z-index: 999; opacity: 0; pointer-events: none; transition: all 0.25s cubic-bezier(0, 0, 0.2, 1);
-  box-shadow: var(--shadow-float);
+  background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(8px);
+  color: #fff; padding: 10px 22px; border-radius: var(--radius-full);
+  font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 8px;
+  z-index: 999; opacity: 0; pointer-events: none; transition: all 0.25s ease;
 }
-.vgo-toast.active { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* 图片悬浮光泽与高保真比例容器 */
-.aspect-ratio-box {
-  position: relative; width: 100%; padding-top: 60%;
-  overflow: hidden; background: #E2E8F0;
-}
-.aspect-ratio-box img {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  object-fit: cover; transition: transform 0.35s ease;
-}
-.aspect-ratio-box:active img { transform: scale(1.05); }
-
-/* 业务专属轻量标签 */
-.tag-pill {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 800;
-}
+.vgo-pill-toast.active { opacity: 1; transform: translateX(-50%) translateY(0); }
