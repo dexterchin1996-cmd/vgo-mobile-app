@@ -41,16 +41,23 @@ jobs:
 
       - name: Inject Entry & Package Identity
         run: |
-          echo "Building target: ${{ matrix.app.name }} with entry ${{ matrix.app.entry }}"
-          # 确保主入口定位到对应的角色页面
-          cp -f ${{ matrix.app.entry }} index.html
-          mkdir -p public www
-          cp -f ${{ matrix.app.entry }} public/index.html
-          cp -f ${{ matrix.app.entry }} www/index.html
+          echo "Target App: ${{ matrix.app.name }}"
+          # 精准替换 public/ 下的入口文件
+          if [ -f "public/${{ matrix.app.entry }}" ]; then
+            cp -f "public/${{ matrix.app.entry }}" public/index.html
+            echo "Successfully mapped public/${{ matrix.app.entry }} to public/index.html"
+          elif [ -f "${{ matrix.app.entry }}" ]; then
+            cp -f "${{ matrix.app.entry }}" public/index.html
+          fi
 
-          # 动态更新应用名称
+          # 确保根目录及 www 目录同步
+          mkdir -p www
+          cp -f public/index.html index.html 2>/dev/null || true
+          cp -f public/index.html www/index.html 2>/dev/null || true
+
+          # 动态更新 Android 应用名称
           if [ -f "android/app/src/main/res/values/strings.xml" ]; then
-            sed -i "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">${{ matrix.app.display_name }}</string>|g" android/app/src/main/res/values/strings.xml
+            sed -i "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">${{ matrix.app.display_name }}</string>|g" android/app/src/main/res/values/strings.xml || true
           fi
 
       - name: Install Build Tools
